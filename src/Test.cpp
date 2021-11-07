@@ -1,37 +1,40 @@
-//#include <GLFW/glfw3.h>
-//
-//int main(void)
-//{
-//    GLFWwindow* window;
-//
-//    /* Initialize the library */
-//    if (!glfwInit())
-//        return -1;
-//
-//    /* Create a windowed mode window and its OpenGL context */
-//    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-//    if (!window)
-//    {
-//        glfwTerminate();
-//        return -1;
-//    }
-//
-//    /* Make the window's context current */
-//    glfwMakeContextCurrent(window);
-//
-//    /* Loop until the user closes the window */
-//    while (!glfwWindowShouldClose(window))
-//    {
-//        /* Render here */
-//        glClear(GL_COLOR_BUFFER_BIT);
-//
-//        /* Swap front and back buffers */
-//        glfwSwapBuffers(window);
-//
-//        /* Poll for and process events */
-//        glfwPollEvents();
-//    }
-//
-//    glfwTerminate();
-//    return 0;
-//}
+#define STB_IMAGE_IMPLEMENTATION    
+#include "stb_image.h"
+#include "opencv2/opencv.hpp"
+#include "iostream"
+
+using namespace cv;
+
+int main(int, char**) {
+    // open the first webcam plugged in the computer
+    cv::VideoCapture camera(1);
+    if (!camera.isOpened()) {
+        std::cerr << "ERROR: Could not open camera" << std::endl;
+        return 1;
+    }
+
+    // create a window to display the images from the webcam
+    cv::namedWindow("Webcam");
+
+    
+
+    // display the frame until you press a key
+    while (1) {
+        
+        // this will contain the image from the webcam
+        cv::Mat frame;
+
+        // capture the next frame from the webcam
+        camera >> frame;    
+
+        if (frame.empty()) break; //end of video stream
+
+        // show the image on the window
+        cv::imshow("Webcam", frame);
+        // wait (10ms) for a key to be pressed
+        
+        if (cv::waitKey(10) == 27) break; // stop capturing by pressing ESC 
+
+    }
+    return 0;
+}

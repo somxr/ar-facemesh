@@ -2,7 +2,6 @@
 #include <GL/glew.h>
 
 
-
 class Mesh
 {
 public:
