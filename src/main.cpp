@@ -112,6 +112,8 @@
 //		0, 1, 2
 //	};
 //	
+//
+//
 //	GLfloat vertices[] = {
 //	//	  x		 y	   z		U		V	  normals: x    y     z
 //		-1.0f, -1.0f, -0.6f,	0.0f,  0.0f,		0.0f, 0.0f, 0.0f, 

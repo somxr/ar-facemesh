@@ -1,250 +1,98 @@
-#include "Shader.h"
+//#define GLEW_STATIC
+#include <GL/glew.h>
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include "shader.h"
+#include <sstream>
 
-Shader::Shader()
+GLchar* get_program_from_file(bool* f_fail, const char* file_path)
 {
-	shaderID = 0;
-	uniformModel = 0;
-	uniformProjection = 0;
+	std::ifstream f(file_path);
+	std::stringstream f_stream;
 
-	pointLightCount = 0;
+	// error_check
+	if (!f) *f_fail = 1;
+	else *f_fail = 0;
+
+	// read all the contents of that file
+	f_stream << f.rdbuf();
+
+	// copy the data to a memory in the heap so that after the scope of this function runs out it still remains
+	GLchar* code = new GLchar[f_stream.str().length() + 1];
+	std::memcpy(code, f_stream.str().c_str(), f_stream.str().length() + 1);
+
+	// lets close the open files
+	f.close();
+
+	return code;
 }
 
-void Shader::CreateFromString(const char* vertexCode, const char* fragmentCode)
+GLuint compile_shader(std::string shader_type, const char* code)
 {
-	CompileShader(vertexCode, fragmentCode);
-}
+	GLuint s = glCreateShader(GL_VERTEX_SHADER); // default we assume its a vertex shader
 
-void Shader::CreateFromFiles(const char* vertexLocation, const char* fragmentLocation)
-{
-	std::string vertexString = ReadFile(vertexLocation); 
-	std::string fragmentString = ReadFile(fragmentLocation);
+	if (shader_type == "FRAGMENT") // else its a fragment shader
+		s = glCreateShader(GL_FRAGMENT_SHADER);
 
-	const char* vertexCode = vertexString.c_str(); //converts from string to c string (const char array)
-	const char* fragmentCode = fragmentString.c_str();
+	glShaderSource(s, 1, &code, NULL);
+	glCompileShader(s);
 
-	CompileShader(vertexCode, fragmentCode);
-}
-
-std::string Shader::ReadFile(const char* fileLocation)
-{
-	std::string content;
-	std::ifstream fileStream(fileLocation, std::ios::in);
-
-	if (!fileStream.is_open())
+	GLint success;
+	GLchar errorLog[512];
+	glGetShaderiv(s, GL_COMPILE_STATUS, &success);
+	if (!success)
 	{
-		printf("fails to read %s file doesn't exist", fileLocation);
-		return "";
+		glGetShaderInfoLog(s, 512, NULL, errorLog);
+		std::cerr << "ERROR: " << shader_type << " SHADER COMPILATION FAILED. " << errorLog << std::endl;
 	}
+	return s;
+}
 
-	std::string line = "";
+// constructor --------------------------------------------------------------------------
+Shader::Shader(const char* vs_path, const char* fs_path)
+{
+	bool s_fail;
 
-	while (!fileStream.eof())
+	// get the vertex shader code
+	const GLchar* vs_code = get_program_from_file(&s_fail, vs_path);
+	if (s_fail) std::cerr << "ERROR: VERTEX SHADER FILE COULD NOT BE OPENED" << std::endl;
+
+	// get the fragment shader code
+	const GLchar* fs_code = get_program_from_file(&s_fail, fs_path);
+	if (s_fail) std::cerr << "ERROR: FRAGMENT SHADER FILE COULD NOT BE OPENED" << std::endl;
+
+	//compile vs and fs --------------------------------------------
+	GLuint vs = compile_shader("VERTEX", vs_code);
+	GLuint fs = compile_shader("FRAGMENT", fs_code);
+
+	// link the shaders ---------------------------------------------
+	// since linking is not very lengthy lets do it here
+	this->program = glCreateProgram();
+	glAttachShader(this->program, vs);
+	glAttachShader(this->program, fs);
+	glLinkProgram(this->program);
+
+	// check for linking errors
+	GLint success;
+	GLchar errorLog[512];
+	glGetProgramiv(program, GL_LINK_STATUS, &success);
+	if (!success)
 	{
-		std::getline(fileStream, line);
-		content.append(line + "\n");
+		glGetProgramInfoLog(this->program, 512, NULL, errorLog);
+		std::cerr << "ERROR: SHADER PROGRAM LINKING FAILED" << errorLog << std::endl;
 	}
 
-	fileStream.close();
-	return content;
+	//---------------------------------------------------------------
+	// Delete shaders after compilation
+	delete(vs_code);
+	delete(fs_code);
+	glDeleteShader(vs);
+	glDeleteShader(fs);
 }
 
-void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
-{
-	shaderID = glCreateProgram();
-
-	if (!shaderID) {
-		printf("Error creating shader program!\n");
-		return;
-	}
-
-	AddShader(shaderID, vertexCode, GL_VERTEX_SHADER);
-	AddShader(shaderID, fragmentCode, GL_FRAGMENT_SHADER);
-
-	//getting the error codes from the creation of the shaders, link the program and validate it. 
-	//wrote the shader code as a string so we gotta make sure we can know if there's errors in it
-	GLint result = 0; //the result of the two functions 
-	GLchar eLog[1024] = { 0 }; //place to log the error
-
-	glLinkProgram(shaderID);
-	glGetProgramiv(shaderID, GL_LINK_STATUS, &result);
-	if (!result)
-	{
-		glGetProgramInfoLog(shaderID, sizeof(eLog), NULL, eLog);
-		printf("error linking program: '%s'\n", eLog);
-		return;
-	}
-
-	glValidateProgram(shaderID); // checking if shader we just created is is valid in the current context openGL is working in
-
-	glGetProgramiv(shaderID, GL_VALIDATE_STATUS, &result);
-	if (!result)
-	{
-		glGetProgramInfoLog(shaderID, sizeof(eLog), NULL, eLog);
-		printf("error validating program: '%s'\n", eLog);
-		return;
-	}
-
-	uniformProjection = glGetUniformLocation(shaderID, "projection");
-	uniformModel = glGetUniformLocation(shaderID, "model");
-	uniformView = glGetUniformLocation(shaderID, "view");
-	uniformDirectionalLight.uniformColour = glGetUniformLocation(shaderID, "directionalLight.base.colour");
-	uniformDirectionalLight.uniformAmbientIntensity = glGetUniformLocation(shaderID, "directionalLight.base.ambientIntensity");
-	uniformDirectionalLight.uniformDirection = glGetUniformLocation(shaderID, "directionalLight.direction");
-	uniformDirectionalLight.uniformDiffuseIntensity = glGetUniformLocation(shaderID, "directionalLight.base.diffuseIntensity");
-	uniformSpecularIntensity = glGetUniformLocation(shaderID, "material.specularIntensity");
-	uniformShininess = glGetUniformLocation(shaderID, "material.shininess");
-	uniformEyePosition = glGetUniformLocation(shaderID, "eyePosition");
-
-	uniformPointLightCount = glGetUniformLocation(shaderID, "pointLightCount");
-
-	for (size_t i = 0; i < MAX_POINT_LIGHTS; i++)
-	{
-		//location buffer. Use this to be able to put the index in a string to work with glGetUniformLocation function. initialized to \0 (null terminator) means end of string
-		char locBuff[100] = {'\0'}; 	
-
-		//snprintf() prints to a buffer. We're passing the text with the formatted index ([%d] replaced by current i) to locBuff 
-		snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.colour", i); 
-		uniformPointLight[i].uniformColour = glGetUniformLocation(shaderID, locBuff);
-
-		snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.ambientIntensity", i);
-		uniformPointLight[i].uniformAmbientIntensity = glGetUniformLocation(shaderID, locBuff);
-
-		snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.diffuseIntensity", i);
-		uniformPointLight[i].uniformDiffuseIntensity = glGetUniformLocation(shaderID, locBuff);
-
-		snprintf(locBuff, sizeof(locBuff), "pointLights[%d].position", i);
-		uniformPointLight[i].uniformPosition = glGetUniformLocation(shaderID, locBuff);
-
-		snprintf(locBuff, sizeof(locBuff), "pointLights[%d].constant", i);
-		uniformPointLight[i].uniformConstant = glGetUniformLocation(shaderID, locBuff);
-
-		snprintf(locBuff, sizeof(locBuff), "pointLights[%d].linear", i);
-		uniformPointLight[i].uniformLinear = glGetUniformLocation(shaderID, locBuff);
-
-		snprintf(locBuff, sizeof(locBuff), "pointLights[%d].exponent", i);
-		uniformPointLight[i].uniformExponent = glGetUniformLocation(shaderID, locBuff);
-	}
-}
-
-GLuint Shader::GetProjectionLocation()
-{
-	return uniformProjection;
-}
-
-GLuint Shader::GetModelLocation()
-{
-	return uniformModel;
-}
-
-GLuint Shader::GetViewLocation()
-{
-	return uniformView;
-}
-
-GLuint Shader::GetAmbientColourLocation()
-{
-	return uniformDirectionalLight.uniformColour;
-}
-
-GLuint Shader::GetAmbientIntensityLocation()
-{
-	return uniformDirectionalLight.uniformAmbientIntensity;
-}
-
-GLuint Shader::GetDiffuseIntensityLocation()
-{
-	return uniformDirectionalLight.uniformDiffuseIntensity;
-}
-
-GLuint Shader::GetDirectionLocation()
-{
-	return uniformDirectionalLight.uniformDirection;
-}
-
-GLuint Shader::GetSpecularIntensityLocation()
-{
-	return uniformSpecularIntensity;
-}
-
-GLuint Shader::GetShininessLocation()
-{
-	return uniformShininess;
-}
-
-GLuint Shader::GetEyePositionLocation()
-{
-	return uniformEyePosition;
-}
-
-void Shader::SetDirectionalLight(DirectionalLight* dLight)
-{
-	dLight->UseLight(uniformDirectionalLight.uniformAmbientIntensity, uniformDirectionalLight.uniformColour,
-					uniformDirectionalLight.uniformDiffuseIntensity, uniformDirectionalLight.uniformDirection);
-}
-
-void Shader::SetPointLights(PointLight* pLight, unsigned int lightCount)
-{
-	if (lightCount > MAX_POINT_LIGHTS)
-	{
-		lightCount = MAX_POINT_LIGHTS;
-	}
-
-	glUniform1i(uniformPointLightCount, lightCount);
-
-	for (size_t i=0; i < lightCount; i++)
-	{
-		pLight[i].UseLight(uniformPointLight[i].uniformAmbientIntensity, uniformPointLight[i].uniformColour, 
-							uniformPointLight[i].uniformDiffuseIntensity, uniformPointLight[i].uniformPosition, 
-							uniformPointLight[i].uniformConstant, uniformPointLight[i].uniformLinear, uniformPointLight[i].uniformExponent);
-	}
-}
-
-void Shader::UseShader()
-{
-	glUseProgram(shaderID);
-}
-
-void Shader::ClearShader()
-{
-	if (shaderID != 0)
-	{
-		glDeleteProgram(shaderID); //deletes program off of the graphics card, no unnecessary memory taken up
-		shaderID = 0;
-	}
-
-	uniformModel = 0;
-	uniformProjection = 0;
-}
-
-void Shader::AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderType)
-{
-	GLuint theShader = glCreateShader(shaderType);
-
-	const GLchar* theCode[1];
-	theCode[0] = shaderCode;
-
-	GLint codeLength[1];
-	codeLength[0] = strlen(shaderCode);
-
-	glShaderSource(theShader, 1, theCode, codeLength);
-	glCompileShader(theShader);
-
-	GLint result = 0;
-	GLchar eLog[1024] = { 0 };
-
-
-	glGetShaderiv(theShader, GL_COMPILE_STATUS, &result);
-	if (!result)
-	{
-		glGetShaderInfoLog(theShader, sizeof(eLog), NULL, eLog);
-		printf("error compiling the %d shader: '%s'\n", shaderType, eLog);
-		return;
-	}
-
-	glAttachShader(theProgram, theShader);
-}
-
+// Destructor for deleting the used program ---------------------------------------------
 Shader::~Shader()
 {
-	ClearShader();
+	glDeleteShader(program);
 }

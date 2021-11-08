@@ -31,7 +31,7 @@ void Texture::LoadTexture()
 		return;
 	}
 
-	//generating a texture and applying out ID to it, very similar to how we did VAOs and VBOs
+	//generating a texture and applying our ID to it, very similar to how we did VAOs and VBOs
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 

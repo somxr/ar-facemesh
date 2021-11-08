@@ -1,82 +1,17 @@
-#pragma once
+#ifndef SHADER_H
+#define SHADER_H
 
-#include <stdio.h>
-#include <iostream>
-#include <string>
-#include <fstream>
-
+#define GLEW_STATIC
 #include <GL/glew.h>
-
-#include "CommonValues.h"
-
-#include "DirectionalLight.h"
-#include "PointLight.h"
 
 class Shader
 {
 public:
-	Shader();
+	GLuint program;
 
-	void CreateFromString(const char* vertexCode, const char* fragmentCode);
-	void CreateFromFiles(const char* vertexLocation, const char* fragmentLocation);
-
-	std::string ReadFile(const char* fileLocation);
-
-	GLuint GetProjectionLocation();
-	GLuint GetModelLocation();
-	GLuint GetViewLocation();
-
-	GLuint GetDiffuseIntensityLocation();
-	GLuint GetDirectionLocation();
-	GLuint GetSpecularIntensityLocation();
-	GLuint GetShininessLocation();
-	GLuint GetEyePositionLocation();
-
-	void SetDirectionalLight(DirectionalLight* dLight);
-	void SetPointLights(PointLight* pLight, unsigned int lightCount);
-
-	//uniforms in the fragment shader for the light 
-	GLuint GetAmbientIntensityLocation();
-	GLuint GetAmbientColourLocation();
-
-	void UseShader();
-	void ClearShader();
-
+	// constructor - actual definition of methods in shader.cpp in source directory
+	Shader(const char* vertex_shader_path, const char* fragment_shader_path);
 	~Shader();
-
-private:
-
-	int pointLightCount;
-
-	GLuint shaderID, uniformProjection, uniformModel, uniformView, uniformEyePosition,
-			uniformSpecularIntensity, uniformShininess;
-
-	struct {
-
-		GLuint uniformColour;
-		GLuint uniformAmbientIntensity;
-		GLuint uniformDiffuseIntensity;
-
-		GLuint uniformDirection;
-
-	} uniformDirectionalLight;
-
-	GLuint uniformPointLightCount;
-
-	struct {
-
-		GLuint uniformColour;
-		GLuint uniformAmbientIntensity;
-		GLuint uniformDiffuseIntensity;
-
-		GLuint uniformPosition;
-		GLuint uniformConstant;
-		GLuint uniformLinear;
-		GLuint uniformExponent;
-		
-	} uniformPointLight[MAX_POINT_LIGHTS];
-
-	void CompileShader(const char* vertexCode, const char* fragmentCode);
-	void AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderType);
 };
 
+#endif
