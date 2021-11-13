@@ -27,7 +27,7 @@
 #include<dlib/image_processing.h>
 #include<dlib/opencv.h>
 
-using namespace dlib;
+//using namespace dlib;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -35,8 +35,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 }
-
-
 
 
 int width_window = 640, height_window = 480;
@@ -129,6 +127,8 @@ int main(int argc, char** argv)
 	width = frame.size().width;
 	height = frame.size().height;
 
+	std::cout << width << std::endl; //TESTING
+
 	GLuint texture_bg;
 	glGenTextures(1, &texture_bg);
 	glBindTexture(GL_TEXTURE_2D, texture_bg);
@@ -155,22 +155,22 @@ int main(int argc, char** argv)
 	glm::mat4 orthographic_projection_bg = glm::ortho(0.0f, (GLfloat)width_window, 0.0f, (GLfloat)height_window, nearPlane, ortho_far);
 	// =========================================================================================================
 
-	//DLIB LANDMARKS STUFF 
+
+	//////////DLIB LANDMARKS STUFF////////////// 
 	//define the face detector
-	frontal_face_detector faceDetector = get_frontal_face_detector();
+	dlib::frontal_face_detector faceDetector = dlib::get_frontal_face_detector();
 
 	//define landmark detector
-	shape_predictor landmarkDetector;
+	dlib::shape_predictor landmarkDetector;
 
 	//load face landmark model
-	deserialize("shape_predictor_68_face_landmarks.dat") >> landmarkDetector;
+	dlib::deserialize("shape_predictor_68_face_landmarks.dat") >> landmarkDetector;
 
 	//define resize height
 	float resizeHeight = 480;
 	
 	//calculate resize scale
-	float height = frame.rows;
-	float resizeScale = height / resizeHeight;
+	float resizeScale = frame.rows / resizeHeight;
 
 	//define to hold detected faces
 	std::vector<dlib::rectangle> faces;
@@ -184,13 +184,15 @@ int main(int argc, char** argv)
 
 		cap >> frame;
 
-		cv::Mat smallFrame;
-
-		cv::resize(frame, smallFrame, cv::Size(), 1.0 / resizeScale, 1.0 / resizeScale);
+		//smaller image frame for more effecient face recognition 
+		cv::Mat smallFrame; 
+		cv::resize(frame, smallFrame, cv::Size(), 1.0 / resizeScale, 1.0 / resizeScale); 
 
 		//change to dlib image format
-		cv_image<bgr_pixel> dlibImageSmall(smallFrame);
-		cv_image<bgr_pixel> dlibImage(frame);
+		dlib::cv_image<dlib::bgr_pixel> dlibImageSmall(smallFrame);
+		dlib::cv_image<dlib::bgr_pixel> dlibImage(frame);
+
+		faces = faceDetector(dlibImageSmall);
 
 		//loop over faces
 		for (int i = 0; i < faces.size(); i++) {
@@ -202,8 +204,16 @@ int main(int argc, char** argv)
 				int(faces[i].bottom() * resizeScale));
 
 			//Face landmark detection
-			full_object_detection faceLandmark = landmarkDetector(dlibImage, rect);
+			dlib::full_object_detection faceLandmark = landmarkDetector(dlibImage, rect);
 
+			for (i = 0; i < 68; i++)
+			{
+				int x = faceLandmark.part(i).x();
+				int y = faceLandmark.part(i).y();
+				//std::cout << faceLandmark.part(i).x()/float(width) << std::endl; //TESTING
+				cv::Point point = cv::Point(x, y);
+				cv::circle(frame, point, 3, cv::Scalar(0, 0, 255));
+			}
 		}
 
 
