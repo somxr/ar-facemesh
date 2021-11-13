@@ -1,92 +1,162 @@
-#define STB_IMAGE_IMPLEMENTATION    
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#include <dlib/opencv.h>
-#include <opencv2/highgui/highgui.hpp>
-#include <dlib/image_processing/frontal_face_detector.h>
-#include <dlib/image_processing/render_face_detections.h>
-#include <dlib/image_processing.h>
-#include <dlib/gui_widgets.h>
-#include <opencv2/imgproc.hpp>
+#include<dlib/image_processing/frontal_face_detector.h>
+#include<dlib/image_processing.h>
+#include<dlib/opencv.h>
+#include<opencv2/imgproc.hpp>
+#include<opencv2/highgui.hpp>
+#include<iostream>
 
-using namespace dlib;
+using namespace cv;
 using namespace std;
+using namespace dlib;
 
+//draw polyline
+void drawPolyline(cv::Mat& image, full_object_detection landmarks, int start, int end, bool isClosed = false) {
+    std::vector<cv::Point> points;
+    for (int i = start; i <= end; i++) {
+        points.push_back(cv::Point(landmarks.part(i).x(), landmarks.part(i).y()));
+    }
+    cv::polylines(image, points, isClosed, cv::Scalar(0, 255, 255), 2, 16);
+}
 
-int main()
-{
-    try
-    {
-        cv::VideoCapture cap(1);
-        if (!cap.isOpened())
-        {
-            cerr << "Unable to connect to camera" << endl;
-            return 1;
+void drawPolylines(cv::Mat& image, full_object_detection landmarks) {
+    drawPolyline(image, landmarks, 0, 16);              //jaw line
+    drawPolyline(image, landmarks, 17, 21);             //left eyebrow
+    drawPolyline(image, landmarks, 22, 26);             //right eyebrow
+    drawPolyline(image, landmarks, 27, 30);             //Nose bridge
+    drawPolyline(image, landmarks, 30, 35, true);       //lower nose
+    drawPolyline(image, landmarks, 36, 41, true);       //left eye
+    drawPolyline(image, landmarks, 42, 47, true);       //right eye
+    drawPolyline(image, landmarks, 48, 59, true);       //outer lip
+    drawPolyline(image, landmarks, 60, 67, true);       //inner lip
+}
+
+//finds face landmark points and draw polylines around face landmarks
+void findFaceLandmarksAndDrawPolylines(Mat& frame, frontal_face_detector faceDetector, shape_predictor landmarkDetector,
+    std::vector<dlib::rectangle>& faces, float resizeScale, int skipFrames, int frameCounter) {
+
+    //to store resized image
+    Mat smallFrame;
+
+    //resize frame to smaller image
+    resize(frame, smallFrame, Size(), 1.0 / resizeScale, 1.0 / resizeScale);
+
+    //change to dlib image format
+    cv_image<bgr_pixel> dlibImageSmall(smallFrame);
+    cv_image<bgr_pixel> dlibImage(frame);
+
+    //detect faces at interval of skipFrames
+    if (frameCounter % skipFrames == 0) {
+        faces = faceDetector(dlibImageSmall);
+    }
+
+    //loop over faces
+    for (int i = 0; i < faces.size(); i++) {
+
+        //scale the rectangle coordinates as we did face detection on resized smaller image
+        dlib::rectangle rect(int(faces[i].left() * resizeScale),
+            int(faces[i].top() * resizeScale),
+            int(faces[i].right() * resizeScale),
+            int(faces[i].bottom() * resizeScale));
+
+        //Face landmark detection
+        full_object_detection faceLandmark = landmarkDetector(dlibImage, rect);
+
+        //draw poly lines around face landmarks
+        drawPolylines(frame, faceLandmark);
+    }
+}
+
+int main() {
+
+    //create videoCapture object to show wbecam video
+    VideoCapture videoCapture(1);
+
+    //Check if opencv is able to open camera
+    if (!videoCapture.isOpened()) {
+        cout << "can not open webcam" << endl;
+        return 0;
+    }
+
+    //define the face detector
+    frontal_face_detector faceDetector = get_frontal_face_detector();
+
+    //define landmark detector
+    shape_predictor landmarkDetector;
+
+    //load face landmark model
+    deserialize("shape_predictor_68_face_landmarks.dat") >> landmarkDetector;
+
+    //define resize height
+    float resizeHeight = 480;
+
+    //define skip frames
+    int skipFrames = 3;
+
+    //Get first frame
+    Mat frame;
+    videoCapture >> frame;
+
+    //calculate resize scale
+    float height = frame.rows;
+    float resizeScale = height / resizeHeight;
+
+    //initiate the tickCounter
+    double tick = getTickCount();
+    int frameCounter = 0;
+
+    //create window to display frame
+    namedWindow("frame", WINDOW_NORMAL);
+
+    //create variable to store fps
+    double fps = 30.0;
+
+    //define to hold detected faces
+    std::vector<dlib::rectangle> faces;
+
+    while (1) {
+        if (frameCounter == 0) {
+            tick = getTickCount();
         }
 
-        image_window win;
+        //read a frame
+        videoCapture >> frame;
 
-        // Load face detection and pose estimation models.
-        frontal_face_detector detector = get_frontal_face_detector();
-        shape_predictor pose_model;
-        deserialize("shape_predictor_68_face_landmarks.dat") >> pose_model;
+        findFaceLandmarksAndDrawPolylines(frame, faceDetector, landmarkDetector, faces, resizeScale, skipFrames, frameCounter);
 
-        // Grab and process frames until the main window is closed by the user.
-        while (!win.is_closed())
-        {
-            // Grab a frame
-            cv::Mat temp;
-            if (!cap.read(temp))
-            {
-                break;
-            }
+        //change fps to string
+        String fpss;
+        fpss = to_string(fps);
 
-            //DOWNSIZE IMAGE AND TURN INTO GRAYSCALE FOR FASTER PROCESSING
-            int scale_percent = 40;
-            int width = int(temp.cols * scale_percent / 100);
-            int height = int(temp.rows * scale_percent / 100);
+        //draw fps on the frame
+        putText(frame, fpss, Point(50, 50), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 5);
 
-            cv::Mat temp_downSize;
+        //show frame
+        imshow("frame", frame);
 
-            cv::resize(temp, temp_downSize, cv::Size(width, height), cv::INTER_LINEAR);
+        //Press esc to exit the program
+        char key = waitKey(1);
+        if (key == 27) {
+            break;
+        }
 
-            //cv::Mat grayscale_temp;
-            //cv::cvtColor(temp_downSize, grayscale_temp, cv::COLOR_BGR2GRAY);
+        //increment frame counter
+        frameCounter++;
 
-            // Turn OpenCV's Mat into something dlib can deal with.  Note that this just
-            // wraps the Mat object, it doesn't copy anything.  So cimg is only valid as
-            // long as temp is valid.  Also don't do anything to temp that would cause it
-            // to reallocate the memory which stores the image as that will make cimg
-            // contain dangling pointers.  This basically means you shouldn't modify temp
-            // while using cimg.
-
-            cv_image<bgr_pixel> cimg(temp);
-
-            dlib::array2d<unsigned char> img_gray;
-            dlib::assign_image(img_gray, cimg);
-
-
-            // Detect faces 
-            std::vector<rectangle> faces = detector(img_gray);
-            // Find the pose of each face.
-            std::vector<full_object_detection> shapes;
-            for (unsigned long i = 0; i < faces.size(); ++i)
-                shapes.push_back(pose_model(img_gray, faces[i]));
-
-            // Display it all on the screen
-            win.clear_overlay();
-            win.set_image(cimg);
-            win.add_overlay(render_face_detections(shapes));
+        //calculate fps after every 100 frames
+        if (frameCounter == 100) {
+            tick = ((double)getTickCount() - tick) / getTickFrequency();
+            fps = 100.0 / tick;
+            frameCounter = 0;
         }
     }
-    catch (serialization_error& e)
-    {
-        cout << "You need dlib's default face landmarking model file to run this example." << endl;
-        cout << "You can get it from the following URL: " << endl;
-        cout << "   http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2" << endl;
-        cout << endl << e.what() << endl;
-    }
-    catch (exception& e)
-    {
-        cout << e.what() << endl;
-    }
+
+    //release video capture object
+    videoCapture.release();
+
+    //close all the opened windows
+    destroyAllWindows();
+
+    return 0;
 }
