@@ -37,9 +37,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 
-int width_window = 640, height_window = 480;
-
-int main(int argc, char** argv)
+GLFWwindow* initializeOpenglWindow(int width_window, int height_window)
 {
 	// =========================================================================================================
 	// OpenGL initializations
@@ -57,17 +55,32 @@ int main(int argc, char** argv)
 	{
 		std::cerr << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
-		return -1;
+		return NULL;
 	}
 	glewExperimental = GL_TRUE;
 
 	if (glewInit() != GLEW_OK)
 	{
 		std::cout << "Failed to initialize GLEW" << std::endl;
-		return -1;
+		return NULL;
 	}
 
 	glEnable(GL_DEPTH_TEST);
+
+	return window;
+}
+
+int width_window = 640, height_window = 480;
+
+int main(int argc, char** argv)
+{
+	
+	GLFWwindow* window = initializeOpenglWindow(width_window, height_window);
+
+	if (window == NULL)
+	{
+		return -1;
+	}
 
 	// Viewport dimensions
 	glfwGetFramebufferSize(window, &width_window, &height_window);
