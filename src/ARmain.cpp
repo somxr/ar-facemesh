@@ -21,13 +21,12 @@
 
 //MINE
 #include "Shader.h"
+#include "Object.h"
 
 //DLIB
 #include<dlib/image_processing/frontal_face_detector.h>
 #include<dlib/image_processing.h>
 #include<dlib/opencv.h>
-
-//using namespace dlib;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -70,6 +69,7 @@ GLFWwindow* initializeOpenglWindow(int width_window, int height_window)
 	return window;
 }
 
+
 int width_window = 640, height_window = 480;
 
 int main(int argc, char** argv)
@@ -86,9 +86,74 @@ int main(int argc, char** argv)
 	glfwGetFramebufferSize(window, &width_window, &height_window);
 	glViewport(0, 0, width_window, height_window);
 
-
 	Shader bg_shader("Shaders/bg_vertex_shader.vert", "Shaders/bg_fragment_shader.frag");
+	Shader tri_shader("Shaders/triangle_shader.vert", "Shaders/triangle_shader.frag");
 
+	
+	//TRIANGLE//--------------------//
+
+	GLfloat vertices_tri[] = {
+		//	  x		 y	   z		 
+			-1.0f, -1.0f, 0.0f,		
+			1.0f, -1.0f, 0.0f,		
+			0.0f, 1.0f, 0.0f
+	};
+
+	GLfloat texture_coord[] = 
+	{
+		0.0f, 0.0f,
+		0.5f, 0.0f,
+		1.0f, 0.0f
+	}; 
+
+	GLuint VBO_tri_Pos, VBO_tri_texcoord, VAO_tri;
+	glGenVertexArrays(1, &VAO_tri);
+	glGenBuffers(1, &VBO_tri_Pos);
+
+	glBindVertexArray(VAO_tri);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_Pos);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_tri), vertices_tri, GL_STATIC_DRAW);
+	
+	// Postion Attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind vbo
+
+	// Texture Attribute
+	glGenBuffers(1, &VBO_tri_texcoord);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_texcoord);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(texture_coord), texture_coord, GL_STATIC_DRAW);
+	
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL); 
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind vbo
+	glBindVertexArray(0); // Unbind VAO
+
+	glm::mat4 model_tri;
+	model_tri = glm::translate(model_tri, glm::vec3(0.0f, 0.0f, -2.0f));	//Translate always comes first
+	//model_tri *= glm::scale(model_tri, glm::vec3(1.0f, 1.0f, 1.0f)); 
+
+
+	glm::mat4 view_tri = glm::mat4(1.0f);
+	//view_tri = glm::translate(view_tri, glm::vec3(0, 0, -100));
+
+	float nearTriangles = 0.1f;
+	float farTriangles = 1000.0f;
+
+	
+	//glm::mat4 orthographic_projection_tri = glm::ortho();	
+	
+	glm:: mat4 orthographic_projection_tri =
+		glm::ortho(-100.0f,
+			100.0f,
+			(-100.0f * ((GLfloat)height_window / (GLfloat)width_window)),
+			(100.0f * ((GLfloat)height_window / (GLfloat)width_window)),
+			-100.0f,
+			100.0f);
+	
+
+	///BACKGROUND DEFINITIONS///
 	cv::Mat frame;
 
 	GLfloat vertices_bg[] =
@@ -101,8 +166,15 @@ int main(int argc, char** argv)
 		0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
 	};
 
-	// -----------------------------------------------------------------------------------------------
-	// background object
+	//Object sphere = Object("Models/sphere.obj");
+
+	//unsigned int indices_pyramid[] = {
+	//	0, 3, 1,
+	//	1, 3, 2,
+	//	2, 3, 0,
+	//	0, 1, 2
+	//};
+	
 	GLuint VBO_bg, VAO_bg;
 	glGenVertexArrays(1, &VAO_bg);
 	glGenBuffers(1, &VBO_bg);
@@ -121,6 +193,8 @@ int main(int argc, char** argv)
 	glEnableVertexAttribArray(1);
 
 	glBindVertexArray(0); // Unbind VAO_bg
+
+	
 
 	// -----------------------------------------------------------------------------------------------
 	// webcam texture
@@ -155,6 +229,7 @@ int main(int argc, char** argv)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, frame.data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
 	// =========================================================================================================
 	// transformation presets for the background object (model, view and orthographic projection)
 	glm::mat4 model_bg(1.0f);
@@ -164,10 +239,9 @@ int main(int argc, char** argv)
 	model_bg = glm::scale(model_bg, glm::vec3(width_window, height_window, 1));
 	view_bg = glm::translate(view_bg, glm::vec3(0, 0, -ortho_far));
 
-	// we will use orthographic projection for the background
+	// use orthographic projection for the webcam background
 	glm::mat4 orthographic_projection_bg = glm::ortho(0.0f, (GLfloat)width_window, 0.0f, (GLfloat)height_window, nearPlane, ortho_far);
 	// =========================================================================================================
-
 
 	//////////DLIB LANDMARKS STUFF////////////// 
 	//define the face detector
@@ -190,9 +264,10 @@ int main(int argc, char** argv)
 
 	while (!glfwWindowShouldClose(window))
 	{
-
+		
 		glfwPollEvents();
-		glClearColor(0.27f, 0.27f, 0.27f, 1.0f);
+		//glClearColor(0.27f, 0.27f, 0.27f, 1.0f);
+		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		cap >> frame;
@@ -228,9 +303,9 @@ int main(int argc, char** argv)
 				cv::circle(frame, point, 3, cv::Scalar(0, 0, 255));
 			}
 		}
-
-
-
+	
+		//wait
+		//Draw background
 		glUseProgram(bg_shader.program);
 		glUniformMatrix4fv(glGetUniformLocation(bg_shader.program, "model_bg"), 1, GL_FALSE, glm::value_ptr(model_bg));
 		glUniformMatrix4fv(glGetUniformLocation(bg_shader.program, "view_bg"), 1, GL_FALSE, glm::value_ptr(view_bg));
@@ -245,7 +320,29 @@ int main(int argc, char** argv)
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
+
+		glUseProgram(0);
 		// -----------------------------------------------------------------------------------------------------
+
+		//Matrix should be here
+		model_tri = glm::mat4(1.0f);
+		view_tri = glm::mat4(1.0f);
+
+		model_tri = glm::translate(model_tri, glm::vec3(0, 0, -3.0f));
+		model_tri = glm::scale(model_tri, glm::vec3(3.0f, 3.0f, 3.0f));
+		//DRAW TRIANGLE
+		glUseProgram(tri_shader.program);
+		glUniformMatrix4fv(glGetUniformLocation(tri_shader.program, "model_tri"), 1, GL_FALSE, glm::value_ptr(model_tri));
+		glUniformMatrix4fv(glGetUniformLocation(tri_shader.program, "view_tri"), 1, GL_FALSE, glm::value_ptr(view_tri));
+		glUniformMatrix4fv(glGetUniformLocation(tri_shader.program, "orthographic_projection_tri"), 1, GL_FALSE, glm::value_ptr(orthographic_projection_tri));
+
+		glBindVertexArray(VAO_tri);
+
+		
+		glDrawArrays(GL_TRIANGLES, 0, 3); 
+		glBindVertexArray(0);
+
+		glUseProgram(0); 
 
 		glfwSwapBuffers(window);
 
