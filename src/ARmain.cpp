@@ -104,6 +104,9 @@ int main(int argc, char** argv)
 	{
 		0.0f, 0.0f,
 		0.5f, 0.0f,
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.6f, 0.0f,
 		1.0f, 0.0f
 	}; 
 
@@ -132,7 +135,7 @@ int main(int argc, char** argv)
 	glBindVertexArray(0); // Unbind VAO
 
 	glm::mat4 model_tri;
-	model_tri = glm::translate(model_tri, glm::vec3(0.0f, 0.0f, -2.0f));	//Translate always comes first
+	//model_tri = glm::translate(model_tri, glm::vec3(0.0f, 0.0f, -2.0f));	//Translate always comes first
 	//model_tri *= glm::scale(model_tri, glm::vec3(1.0f, 1.0f, 1.0f)); 
 
 
@@ -155,8 +158,6 @@ int main(int argc, char** argv)
 	*/
 
 	glm::mat4 orthographic_projection_tri = glm::ortho(0.0f, (GLfloat)width_window, 0.0f, (GLfloat)height_window, -100.0f, 100.0f);
-
-	
 
 	///BACKGROUND DEFINITIONS///
 	cv::Mat frame;
@@ -290,9 +291,6 @@ int main(int argc, char** argv)
 		//loop over faces
 		for (int i = 0; i < faces.size(); i++) {
 
-
-
-
 			//scale the rectangle coordinates as we did face detection on resized smaller image
 			dlib::rectangle rect(int(faces[i].left() * resizeScale),
 				int(faces[i].top() * resizeScale),
@@ -308,16 +306,14 @@ int main(int argc, char** argv)
 			dlib::full_object_detection faceLandmark = landmarkDetector(dlibImage, rect);
 
 			int index = 0;
-			for (i = 0; i < 68; i++)
+			for (int j = 0; j < 68; j++)
 			{
 				
-				int x = faceLandmark.part(i).x();
-				int y = faceLandmark.part(i).y();
+				int x = faceLandmark.part(j).x();
+				int y = faceLandmark.part(j).y();
 
-				vertices_tri[index] = x;
-				vertices_tri[index + 1] = (height - y);
-
-
+				vertices_tri[index] = x * (width_window/float(width)); //get the pixel coordinate of the landmark and scale it to fit the window width and project matrix
+				vertices_tri[index + 1] = (height - y) * (height_window/float(height)); //same as the x coordinate but first minus the y from height because opencv y coordinate is flipped
 
 				//std::cout << y << std::endl;
 
@@ -327,7 +323,6 @@ int main(int argc, char** argv)
 				cv::Point point = cv::Point(x, y);
 				cv::circle(frame, point, 3, cv::Scalar(0, 0, 255));
 			}
-
 
 		}
 	
@@ -357,7 +352,7 @@ int main(int argc, char** argv)
 		model_tri = glm::mat4(1.0f);
 		view_tri = glm::mat4(1.0f);
 
-		model_tri = glm::translate(model_tri, glm::vec3(0, 0, -50.0f));
+		model_tri = glm::translate(model_tri, glm::vec3(0, 0, -100.0f));
 		//model_tri = glm::scale(model_tri, glm::vec3(3.0f, 3.0f, 3.0f));
 		//DRAW TRIANGLE
 
@@ -370,7 +365,7 @@ int main(int argc, char** argv)
 			glBindVertexArray(VAO_tri);	
 
 
-			glPointSize(10.0f);
+			glPointSize(5.0f);
 			glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_Pos);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(68 * 3 * (sizeof(float))), vertices_tri, GL_DYNAMIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
