@@ -315,7 +315,7 @@ int main(int argc, char** argv)
 				int y = faceLandmark.part(i).y();
 
 				vertices_tri[index] = x;
-				vertices_tri[index + 1] = width - y;
+				vertices_tri[index + 1] = (height - y);
 
 
 
