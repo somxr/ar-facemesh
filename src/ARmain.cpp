@@ -367,7 +367,7 @@ int main(int argc, char** argv)
 
 			glPointSize(5.0f);
 			glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_Pos);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(68 * 3 * (sizeof(float))), vertices_tri, GL_DYNAMIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_tri), vertices_tri, GL_DYNAMIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 			glDrawArrays(GL_POINTS, 0, 68);
@@ -377,7 +377,6 @@ int main(int argc, char** argv)
 		glUseProgram(0); 
 
 		glfwSwapBuffers(window);
-
 	}
 
 	glDeleteVertexArrays(1, &VAO_bg);
@@ -385,5 +384,4 @@ int main(int argc, char** argv)
 
 	glfwTerminate();
 	return EXIT_SUCCESS;
-
 }
