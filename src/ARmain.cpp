@@ -89,16 +89,9 @@ int main(int argc, char** argv)
 	Shader bg_shader("Shaders/bg_vertex_shader.vert", "Shaders/bg_fragment_shader.frag");
 	Shader tri_shader("Shaders/triangle_shader.vert", "Shaders/triangle_shader.frag");
 
-	
 	//TRIANGLE//--------------------//
 
 	GLfloat vertices_tri[68*3];
-
-	/*float vertices_tri[] = {
-		-0.5f, -0.5f, 0.0f,
-		 0.5f, -0.5f, 0.0f,
-		 0.0f,  0.5f, 0.0f
-	};*/
 
 	GLfloat texture_coord[] = 
 	{
@@ -109,6 +102,103 @@ int main(int argc, char** argv)
 		0.6f, 0.0f,
 		1.0f, 0.0f
 	}; 
+
+	unsigned int indices[] =
+	{
+		20, 21, 23,
+		21, 22, 23,
+		0, 1, 36,
+		15, 16, 45,
+		0, 17, 36,
+		16, 26, 45,
+		17, 18, 37,
+		25, 26, 44,
+		17, 36, 37,
+		26, 44, 45,
+		18, 19, 38,
+		24, 25, 43,
+		18, 37, 38,
+		25, 43, 44,
+		19, 20, 38,
+		23, 24, 43,
+		20, 21, 39,
+		22, 23, 42,
+		20, 38, 39,
+		23, 42, 43,
+		21, 22, 27,
+		21, 27, 39,
+		22, 27, 42,
+		27, 28, 42,
+		27, 28, 39,
+		28, 42, 47,
+		28, 39, 40,
+		1,  36, 41,
+		15, 45, 46,
+		1,  2, 41,
+		14, 15, 46,
+		28, 29, 40,
+		28, 29, 47,
+		2,  40, 41,
+		14, 46, 47,
+		2,  29, 40,
+		14, 29, 47,
+		2,  3, 29,
+		13, 14, 29,
+		29, 30, 31,
+		29, 30, 35,
+		3,  29, 31,
+		13, 29, 35,
+		30, 32, 33,
+		30, 33, 34,
+		30, 31, 32,
+		30, 34, 35,
+		3,  4, 31,
+		12, 13, 35,
+		4,  5, 48,
+		11, 12, 54,
+		5, 6, 48,
+		10, 11, 54,
+		6, 48, 59,
+		10, 54, 55,
+		6, 7, 59,
+		9, 10, 55,
+		7, 58, 59,
+		9, 55, 56,
+		8, 57, 58,
+		8, 56, 57,
+		7, 8, 58,
+		8, 9, 56,
+		4, 31, 48,
+		12, 35, 54,
+		31, 48, 49,
+		35, 53, 54,
+		31, 49, 50,
+		35, 52, 53,
+		31, 32, 50,
+		34, 35, 52,
+		32, 33, 50,
+		33, 34, 52,
+		33, 50, 51,
+		33, 51, 52,
+		48, 49, 60,
+		49, 60, 50,
+		50, 60, 61,
+		50, 51, 61,
+		51, 52, 61,
+		61, 62, 52,
+		52, 53, 62,
+		53, 54, 62,
+		54, 55, 63,
+		55, 56, 63,
+		56, 63, 64,
+		56, 57, 64,
+		64, 65, 57,
+		57, 58, 65,
+		58, 59, 65,
+		48, 59, 65
+	};
+
+	GLuint EBO;
 
 	GLuint VBO_tri_Pos, VBO_tri_texcoord, VAO_tri;
 	glGenVertexArrays(1, &VAO_tri);
@@ -132,7 +222,16 @@ int main(int argc, char** argv)
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL); 
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind vbo
+
+	//Index buffer
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
 	glBindVertexArray(0); // Unbind VAO
+
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	glm::mat4 model_tri;
 	//model_tri = glm::translate(model_tri, glm::vec3(0.0f, 0.0f, -2.0f));	//Translate always comes first
@@ -181,6 +280,7 @@ int main(int argc, char** argv)
 	//	0, 1, 2
 	//};
 	
+
 	GLuint VBO_bg, VAO_bg;
 	glGenVertexArrays(1, &VAO_bg);
 	glGenBuffers(1, &VBO_bg);
@@ -199,8 +299,6 @@ int main(int argc, char** argv)
 	glEnableVertexAttribArray(1);
 
 	glBindVertexArray(0); // Unbind VAO_bg
-
-	
 
 	// -----------------------------------------------------------------------------------------------
 	// webcam texture
@@ -323,9 +421,8 @@ int main(int argc, char** argv)
 				cv::Point point = cv::Point(x, y);
 				cv::circle(frame, point, 3, cv::Scalar(0, 0, 255));
 			}
-
 		}
-	
+
 		//wait
 		//Draw background
 		glUseProgram(bg_shader.program);
@@ -364,15 +461,16 @@ int main(int argc, char** argv)
 
 			glBindVertexArray(VAO_tri);	
 
-
 			glPointSize(5.0f);
 			glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_Pos);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_tri), vertices_tri, GL_DYNAMIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			glDrawArrays(GL_POINTS, 0, 68);
+			//glDrawArrays(GL_TRIANGLE_STRIP, 0, 68);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+			glDrawElements(GL_TRIANGLES, 273, GL_UNSIGNED_INT, 0);
+			
 			glBindVertexArray(0);
-
 		
 		glUseProgram(0); 
 
