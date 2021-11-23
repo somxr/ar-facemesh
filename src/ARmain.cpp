@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 		21, 22, 23,
 		0, 1, 36,
 		15, 16, 45,
-		0, 17, 36,
+		0, 36, 17,
 		16, 26, 45,
 		17, 18, 37,
 		25, 26, 44,
@@ -180,7 +180,7 @@ int main(int argc, char** argv)
 		33, 34, 52,
 		33, 50, 51,
 		33, 51, 52,
-		48, 49, 60,
+		49, 48, 60,
 		49, 60, 50,
 		50, 60, 61,
 		50, 51, 61,
@@ -189,13 +189,15 @@ int main(int argc, char** argv)
 		52, 53, 62,
 		53, 54, 62,
 		54, 55, 63,
-		55, 56, 63,
+		56, 55, 65,
 		56, 63, 64,
-		56, 57, 64,
 		64, 65, 57,
-		57, 58, 65,
-		58, 59, 65,
-		48, 59, 65
+		58, 57, 66,
+		59, 58, 67,
+		48, 59, 60,
+		60, 59, 67,
+		67, 58, 66,
+		66, 57, 65,
 	};
 
 	GLuint EBO;
@@ -228,10 +230,8 @@ int main(int argc, char** argv)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-
 	glBindVertexArray(0); // Unbind VAO
 
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	glm::mat4 model_tri;
 	//model_tri = glm::translate(model_tri, glm::vec3(0.0f, 0.0f, -2.0f));	//Translate always comes first
@@ -443,7 +443,7 @@ int main(int argc, char** argv)
 		glUseProgram(0);
 		// -----------------------------------------------------------------------------------------------------
 
-		
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		//Matrix should be here
 		model_tri = glm::mat4(1.0f);
@@ -468,7 +468,7 @@ int main(int argc, char** argv)
 
 			//glDrawArrays(GL_TRIANGLE_STRIP, 0, 68);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-			glDrawElements(GL_TRIANGLES, 273, GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, 279, GL_UNSIGNED_INT, 0);
 			
 			glBindVertexArray(0);
 		
