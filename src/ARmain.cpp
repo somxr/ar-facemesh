@@ -1,5 +1,8 @@
+#pragma once
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+//#include <GL/glew.h>
+
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -22,11 +25,20 @@
 //MINE
 #include "Shader.h"
 #include "Object.h"
+//#include "Texture.h"
 
 //DLIB
 #include<dlib/image_processing/frontal_face_detector.h>
 #include<dlib/image_processing.h>
 #include<dlib/opencv.h>
+
+#include "stb_image.h"
+
+//Global vairables
+
+int width_window = 640, height_window = 480;
+GLuint faceTexture;
+GLuint loadTexture(const char* filename);
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -34,6 +46,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 }
+
 
 
 GLFWwindow* initializeOpenglWindow(int width_window, int height_window)
@@ -70,7 +83,6 @@ GLFWwindow* initializeOpenglWindow(int width_window, int height_window)
 }
 
 
-int width_window = 640, height_window = 480;
 
 int main(int argc, char** argv)
 {
@@ -95,12 +107,37 @@ int main(int argc, char** argv)
 
 	GLfloat texture_coord[] = 
 	{
-		0.0f, 0.0f,
-		0.5f, 0.0f,
+		//0.102f, 0.768f, //0
+		//0.104f, 0.662f,
+		//0.117f, 0.557f,
+		//0.141f, 0.449f,
+		//0.180f, 0.354f,
+		//0.246f, 0.268f, //5
+		//0.322f, 0.191f,
+		//0.410f, 0.135f,
+		//0.519f, 0.119,
+		//0.609f, 0.136f,
+		//0.695f, 0.197f, //10
+		//0.773f, 0.271f,
+		//0.836f, 0.361f,
+		//0.877f, 0.459f,
+		//0.896f, 0.566f,
+		//0.904f, 0.676f, //15
+		//0.906f, 0.783f,
+		//0.180f, 0.850f,
+		//0.227f, 0.891f,
+		//0.293f, 0.900f,
+		//0.359f, 0.893f, //20
+		/*0.426f, 0.865f,
+		0.559f, 0.869f,
+		0.625f, 0.900f,*/
+		/*0.695f, 0.910f,*/
+
+		/*0.0f, 0.0f,
 		1.0f, 0.0f,
-		0.0f, 0.0f,
-		0.6f, 0.0f,
-		1.0f, 0.0f
+		0.5f, 0.5f*/
+		0.5f, 0.5f 
+
 	}; 
 
 	unsigned int indices[] =
@@ -211,7 +248,7 @@ int main(int argc, char** argv)
 	glBindVertexArray(VAO_tri);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_Pos);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(68*3*(sizeof(float))), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(68*3*(sizeof(GLfloat))), NULL, GL_DYNAMIC_DRAW);
 	
 	// Postion Attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
@@ -234,6 +271,7 @@ int main(int argc, char** argv)
 
 	glBindVertexArray(0); // Unbind VAO
 
+	faceTexture = loadTexture("Textures/UVTEST.png");
 
 	glm::mat4 model_tri;
 	//model_tri = glm::translate(model_tri, glm::vec3(0.0f, 0.0f, -2.0f));	//Translate always comes first
@@ -443,6 +481,7 @@ int main(int argc, char** argv)
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
 
+		
 		glUseProgram(0);
 		// -----------------------------------------------------------------------------------------------------
 
@@ -461,6 +500,9 @@ int main(int argc, char** argv)
 			glUniformMatrix4fv(glGetUniformLocation(tri_shader.program, "view_tri"), 1, GL_FALSE, glm::value_ptr(view_tri));
 			glUniformMatrix4fv(glGetUniformLocation(tri_shader.program, "orthographic_projection_tri"), 1, GL_FALSE, glm::value_ptr(orthographic_projection_bg));
 
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, faceTexture);
+
 			glBindVertexArray(VAO_tri);	
 
 			glPointSize(5.0f);
@@ -471,10 +513,12 @@ int main(int argc, char** argv)
 			//glDrawArrays(GL_TRIANGLE_STRIP, 0, 68);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 			glDrawElements(GL_TRIANGLES, 285, GL_UNSIGNED_INT, 0);
-			
+			//glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 		
 		glUseProgram(0); 
+
+		//glPolygonMode(GL_FRONT, GL_FILL);
 
 		glfwSwapBuffers(window);
 	}
@@ -484,4 +528,44 @@ int main(int argc, char** argv)
 
 	glfwTerminate();
 	return EXIT_SUCCESS;
+}
+
+//Texture 
+GLuint loadTexture(const char* filename)
+{
+	// Step1 Create and bind textures
+	GLuint textureId = 0;
+	glGenTextures(1, &textureId);
+	assert(textureId != 0);
+
+	glBindTexture(GL_TEXTURE_2D, textureId);
+
+	// Step2 Set filter parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// Step3 Load Textures with dimension data
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load(filename, &width, &height, &nrChannels, 0);
+	if (!data)
+	{
+		std::cerr << "Error::Texture could not load texture file:" << filename << std::endl;
+		return 0;
+	}
+
+	// Step4 Upload the texture to the PU
+	GLenum format = 0;
+	if (nrChannels == 1)
+		format = GL_RED;
+	else if (nrChannels == 3)
+		format = GL_RGB;
+	else if (nrChannels == 4)
+		format = GL_RGBA;
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height,
+		0, format, GL_UNSIGNED_BYTE, data);
+
+	// Step5 Free resources
+	stbi_image_free(data);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	return textureId;
 }
