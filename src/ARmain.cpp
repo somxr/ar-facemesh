@@ -111,93 +111,95 @@ int main(int argc, char** argv)
 		15, 16, 45,
 		0, 36, 17,
 		16, 26, 45,
-		17, 18, 37,
-		25, 26, 44,
+		17, 18, 37, //cw
+		25, 26, 44, //cw
 		17, 36, 37,
 		26, 44, 45,
-		18, 19, 38,
-		24, 25, 43,
+		18, 19, 38, //cw
+		24, 25, 43, //cw
 		18, 37, 38,
 		25, 43, 44,
-		19, 20, 38,
-		23, 24, 43,
-		20, 21, 39,
-		22, 23, 42,
+		19, 20, 38, //cw
+		23, 24, 43, //cw
+		20, 21, 39, //cw
+		22, 23, 42, //cw
 		20, 38, 39,
 		23, 42, 43,
-		21, 22, 27,
-		21, 27, 39,
+		21, 22, 27, //cw
+		21, 27, 39, //cw
 		22, 27, 42,
 		27, 28, 42,
-		27, 28, 39,
-		28, 42, 47,
+		27, 28, 39, //cw
+		28, 42, 47, //cw
 		28, 39, 40,
-		1,  36, 41,
+		1,  36, 41, // cw
 		15, 45, 46,
-		1,  2, 41,
+		1,  2, 41, 
 		14, 15, 46,
-		28, 29, 40,
+		28, 29, 40, //cw
 		28, 29, 47,
 		2,  40, 41,
 		14, 46, 47,
 		2,  29, 40,
-		14, 29, 47,
-		2,  3, 29,
+		14, 29, 47, //cw
+		2,  3, 29, 
 		13, 14, 29,
-		29, 30, 31,
+		29, 30, 31, //cw
 		29, 30, 35,
-		3,  29, 31,
+		3,  29, 31, //cw
 		13, 29, 35,
 		30, 32, 33,
 		30, 33, 34,
 		30, 31, 32,
 		30, 34, 35,
-		3,  4, 31,
+		3,  4, 31, 
 		12, 13, 35,
-		4,  5, 48,
+		4,  5, 48, 
 		11, 12, 54,
-		5, 6, 48,
+		5, 6, 48, 
 		10, 11, 54,
-		6, 48, 59,
+		6, 48, 59, //cw
 		10, 54, 55,
-		6, 7, 59,
+		6, 7, 59, 
 		9, 10, 55,
 		7, 58, 59,
 		9, 55, 56,
 		8, 57, 58,
 		8, 56, 57,
-		7, 8, 58,
-		8, 9, 56,
-		4, 31, 48,
+		7, 8, 58, 
+		8, 9, 56, 
+		4, 31, 48, //cw
 		12, 35, 54,
 		31, 48, 49,
 		35, 53, 54,
 		31, 49, 50,
 		35, 52, 53,
-		31, 32, 50,
-		34, 35, 52,
-		32, 33, 50,
-		33, 34, 52,
-		33, 50, 51,
-		33, 51, 52,
-		49, 48, 60,
-		49, 60, 50,
-		50, 60, 61,
-		50, 51, 61,
-		51, 52, 61,
-		61, 62, 52,
-		52, 53, 62,
-		53, 54, 62,
-		54, 55, 63,
+		31, 32, 50, //cw
+		34, 35, 52, //cw
+		32, 33, 50, //cw
+		33, 34, 52, //cw
+		33, 50, 51, 
+		33, 51, 52, 
+		49, 48, 60, 
+		64, 54, 53, 
+		55, 54, 64,
 		56, 55, 65,
-		56, 63, 64,
-		64, 65, 57,
+		53, 63, 64,
+		63, 53, 52,
+		55, 64, 65,
 		58, 57, 66,
 		59, 58, 67,
 		48, 59, 60,
 		60, 59, 67,
 		67, 58, 66,
-		66, 57, 65,
+		57, 56, 66,
+		56, 65, 66,
+		60, 61, 49, //
+		49, 61, 50, //
+		50, 61, 51, //
+		51, 61, 62, //
+		62, 63, 51,
+		51, 63, 52,
 	};
 
 	GLuint EBO;
@@ -423,6 +425,7 @@ int main(int argc, char** argv)
 			}
 		}
 
+
 		//wait
 		//Draw background
 		glUseProgram(bg_shader.program);
@@ -443,7 +446,7 @@ int main(int argc, char** argv)
 		glUseProgram(0);
 		// -----------------------------------------------------------------------------------------------------
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		//Matrix should be here
 		model_tri = glm::mat4(1.0f);
@@ -451,9 +454,8 @@ int main(int argc, char** argv)
 
 		model_tri = glm::translate(model_tri, glm::vec3(0, 0, -100.0f));
 		//model_tri = glm::scale(model_tri, glm::vec3(3.0f, 3.0f, 3.0f));
+		// 
 		//DRAW TRIANGLE
-
-		
 			glUseProgram(tri_shader.program);
 			glUniformMatrix4fv(glGetUniformLocation(tri_shader.program, "model_tri"), 1, GL_FALSE, glm::value_ptr(model_tri));
 			glUniformMatrix4fv(glGetUniformLocation(tri_shader.program, "view_tri"), 1, GL_FALSE, glm::value_ptr(view_tri));
@@ -468,7 +470,7 @@ int main(int argc, char** argv)
 
 			//glDrawArrays(GL_TRIANGLE_STRIP, 0, 68);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-			glDrawElements(GL_TRIANGLES, 279, GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, 285, GL_UNSIGNED_INT, 0);
 			
 			glBindVertexArray(0);
 		
