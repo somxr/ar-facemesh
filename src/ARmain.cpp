@@ -2,7 +2,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 //#include <GL/glew.h>
 
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -107,36 +106,49 @@ int main(int argc, char** argv)
 
 	GLfloat texture_coord[] = 
 	{
-		//0.102f, 0.768f, //0
-		//0.104f, 0.662f,
-		//0.117f, 0.557f,
-		//0.141f, 0.449f,
-		//0.180f, 0.354f,
-		//0.246f, 0.268f, //5
-		//0.322f, 0.191f,
-		//0.410f, 0.135f,
-		//0.519f, 0.119,
-		//0.609f, 0.136f,
-		//0.695f, 0.197f, //10
-		//0.773f, 0.271f,
-		//0.836f, 0.361f,
-		//0.877f, 0.459f,
-		//0.896f, 0.566f,
-		//0.904f, 0.676f, //15
-		//0.906f, 0.783f,
-		//0.180f, 0.850f,
-		//0.227f, 0.891f,
-		//0.293f, 0.900f,
-		//0.359f, 0.893f, //20
-		/*0.426f, 0.865f,
+		0.102f, 0.768f, //0
+		0.104f, 0.662f,
+		0.117f, 0.557f,
+		0.141f, 0.449f,
+		0.180f, 0.354f,
+		0.246f, 0.268f, //5
+		0.322f, 0.191f,
+		0.410f, 0.135f,
+		0.519f, 0.119,
+		0.609f, 0.136f,
+		0.695f, 0.197f, //10
+		0.773f, 0.271f,
+		0.836f, 0.361f,
+		0.877f, 0.459f,
+		0.896f, 0.566f,
+		0.904f, 0.676f, //15
+		0.906f, 0.783f,
+		0.180f, 0.850f,
+		0.227f, 0.891f,
+		0.293f, 0.900f,
+		0.359f, 0.893f, //20
+		0.426f, 0.865f,
 		0.559f, 0.869f,
-		0.625f, 0.900f,*/
-		/*0.695f, 0.910f,*/
+		0.625f, 0.900f,
+		0.695f, 0.910f,
+		0.765f, 0.900f, //25
+		0.816f, 0.861f,
+		0.494f, 0.787f,
+		0.495f, 0.717f,
+		0.500f, 0.646f,
+		0.500f, 0.576f, //30 
+		0.421f, 0.529f,
+		0.459f, 0.516f,
+		0.500f, 0.500f,
+		0.540f, 0.516f,
+		0.578f, 0.531f, //35
+		0.258f, 0.777f,
+		0.297f, 0.801f,
+		0.350f, 0.801f,
+		0.391f, 0.770f,
+		0.348f, 0.758f, //40
+		0.297f, 0.760f,
 
-		/*0.0f, 0.0f,
-		1.0f, 0.0f,
-		0.5f, 0.5f*/
-		0.5f, 0.5f 
 
 	}; 
 
@@ -410,7 +422,6 @@ int main(int argc, char** argv)
 	{
 		
 		glfwPollEvents();
-		//glClearColor(0.27f, 0.27f, 0.27f, 1.0f);
 		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -450,8 +461,8 @@ int main(int argc, char** argv)
 				int x = faceLandmark.part(j).x();
 				int y = faceLandmark.part(j).y();
 
-				vertices_tri[index] = x * (width_window/float(width)); //get the pixel coordinate of the landmark and scale it to fit the window width and project matrix
-				vertices_tri[index + 1] = (height - y) * (height_window/float(height)); //same as the x coordinate but first minus the y from height because opencv y coordinate is flipped
+				vertices_tri[index] = x * (width_window/float(width)); //get the pixel coordinate of the landmark and scale it to fit the window width and projection matrix
+				vertices_tri[index + 1] = (height - y) * (height_window/float(height)); //same as the x coordinate but first minus the y from height because opencv y axis is flipped
 
 				//std::cout << y << std::endl;
 
