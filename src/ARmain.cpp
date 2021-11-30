@@ -103,6 +103,9 @@ int main(int argc, char** argv)
 	//TRIANGLE//--------------------//
 
 	GLfloat vertices_tri[68*3];
+	//GLfloat vertices_tri_prev[68 * 3];
+
+	std::vector<cv::Point2f> pointsPrev;
 
 	//GLfloat texture_coord[] = 
 	//{
@@ -384,7 +387,9 @@ int main(int argc, char** argv)
 	glm::mat4 orthographic_projection_tri = glm::ortho(0.0f, (GLfloat)width_window, 0.0f, (GLfloat)height_window, -100.0f, 100.0f);
 
 	///BACKGROUND DEFINITIONS///
-	cv::Mat frame;
+	cv::Mat frame, framePrev;
+
+	cv::Mat frameGray, frameGrayPrev;
 
 	GLfloat vertices_bg[] =
 	{
@@ -439,6 +444,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+	bool firstFrame = true;
 	cap >> frame;
 	width = frame.size().width;
 	height = frame.size().height;
@@ -490,6 +496,8 @@ int main(int argc, char** argv)
 
 	//define to hold detected faces
 	std::vector<dlib::rectangle> faces;
+	int frameCounter = 0;
+	int skipFrames = 1;
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -508,45 +516,91 @@ int main(int argc, char** argv)
 		dlib::cv_image<dlib::bgr_pixel> dlibImageSmall(smallFrame);
 		dlib::cv_image<dlib::bgr_pixel> dlibImage(frame);
 
-		faces = faceDetector(dlibImageSmall);
 
-		//loop over faces
-		for (int i = 0; i < faces.size(); i++) {
+		if (frameCounter % skipFrames == 0)
+		{
+			faces = faceDetector(dlibImageSmall);
 
-			//scale the rectangle coordinates as we did face detection on resized smaller image
-			dlib::rectangle rect(int(faces[i].left() * resizeScale),
-				int(faces[i].top() * resizeScale),
-				int(faces[i].right() * resizeScale),
-				int(faces[i].bottom() * resizeScale));
-
-			cv::Point topLeft = cv::Point(faces[i].left(), faces[i].top());
-			cv::Point bottomRight = cv::Point(faces[i].right(), faces[i].bottom());
-
-			cv::rectangle(frame, topLeft,bottomRight, cv::Scalar(255, 0, 0));
-
-			//Face landmark detection
-			dlib::full_object_detection faceLandmark = landmarkDetector(dlibImage, rect);
-
-			int index = 0;
-			for (int j = 0; j < 68; j++)
+			//if a face is detected, process landmarks
+			//working with just the first detected face for simplicity
+			if(faces.size() > 0)
 			{
-				
-				int x = faceLandmark.part(j).x();
-				int y = faceLandmark.part(j).y();
+				//scale the rectangle coordinates as we did face detection on resized smaller image
+				dlib::rectangle rect(int(faces[0].left() * resizeScale),
+					int(faces[0].top() * resizeScale),
+					int(faces[0].right() * resizeScale),
+					int(faces[0].bottom() * resizeScale));
 
-				vertices_tri[index] = x * (width_window/float(width)); //get the pixel coordinate of the landmark and scale it to fit the window width and projection matrix
-				vertices_tri[index + 1] = (height - y) * (height_window/float(height)); //same as the x coordinate but first minus the y from height because opencv y axis is flipped
+				cv::Point topLeft = cv::Point(faces[0].left(), faces[0].top());
+				cv::Point bottomRight = cv::Point(faces[0].right(), faces[0].bottom());
 
-				//std::cout << y << std::endl;
+				cv::rectangle(frame, topLeft, bottomRight, cv::Scalar(255, 0, 0));
 
-				vertices_tri[index + 2] = 1.0f;
-				index += 3;
-				//std::cout << faceLandmark.part(i).x()/float(width) << std::endl; //TESTING
-				cv::Point point = cv::Point(x, y);
-				cv::circle(frame, point, 3, cv::Scalar(0, 0, 255));
+				//Face landmark detection
+				dlib::full_object_detection faceLandmark = landmarkDetector(dlibImage, rect);
+
+
+				std::vector<cv::Point2f> points;
+				int index = 0;
+
+				for (int j = 0; j < 68; j++)
+				{
+					int x = faceLandmark.part(j).x();
+					int y = faceLandmark.part(j).y();
+
+					//vertices_tri[index] = x * (width_window/float(width)); //get the pixel coordinate of the landmark and scale it to fit the window width and projection matrix
+					//vertices_tri[index + 1] = (height - y) * (height_window/float(height)); //same as the x coordinate but first minus the y from height because opencv y axis is flipped
+					//vertices_tri[index + 2] = 1.0f;
+
+					//index += 3;
+
+					points.push_back(cv::Point2f(x, y));
+
+					cv::Point point = cv::Point(x, y);
+					//cv::circle(frame, point, 3, cv::Scalar(0, 0, 255));
+				}
+
+				cv::cvtColor(frame, frameGray, cv::COLOR_BGR2GRAY);
+
+				if (firstFrame)
+				{
+					frameGrayPrev = frameGray.clone();
+					pointsPrev = points;
+					firstFrame = false;
+				}
+
+				std::vector<cv::Point2f> pointsPredicted;
+				cv::TermCriteria criteria = cv::TermCriteria((cv::TermCriteria::COUNT)+(cv::TermCriteria::EPS), 20, 0.001);
+				std::vector<uchar> status;
+				std::vector<float> err;
+				cv::calcOpticalFlowPyrLK(frameGrayPrev, frameGray, pointsPrev, pointsPredicted, status, err, cv::Size(101, 101), 5, criteria);
+
+
+				for (int j = 0; j < 68; j++)
+				{
+					float smoothX = 0.0f * points[j].x + 1.0f * pointsPredicted[j].x;
+					float smoothY = 0.0f * points[j].y + 1.0f * pointsPredicted[j].y;
+
+					cv::Point point = cv::Point(smoothX, smoothY);
+					cv::circle(frame, point, 3, cv::Scalar(0, 0, 255));
+
+					vertices_tri[index] = smoothX * (width_window / float(width));
+					vertices_tri[index + 1] = (height - smoothY) * (height_window / float(height));
+					vertices_tri[index + 2] = 1.0f;
+					index += 3;
+				}
+
+				frameGrayPrev = frameGray.clone();
+				pointsPrev = points;
 			}
+		
 		}
 
+		frameCounter++;
+		if (frameCounter == 100)
+		{
+			frameCounter = 0;
+		}
 
 		//wait
 		//Draw background
@@ -571,14 +625,16 @@ int main(int argc, char** argv)
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-		//Matrix should be here
-		model_tri = glm::mat4(1.0f);
-		view_tri = glm::mat4(1.0f);
+		//if a face is detected, render the face mesh using the VAO
+		if (faces.size() > 0) {
+			//Matrix should be here
+			model_tri = glm::mat4(1.0f);
+			view_tri = glm::mat4(1.0f);
 
-		model_tri = glm::translate(model_tri, glm::vec3(0, 0, -100.0f));
-		//model_tri = glm::scale(model_tri, glm::vec3(3.0f, 3.0f, 3.0f));
-		// 
-		//DRAW TRIANGLE
+			model_tri = glm::translate(model_tri, glm::vec3(0, 0, -100.0f));
+			//model_tri = glm::scale(model_tri, glm::vec3(3.0f, 3.0f, 3.0f));
+			// 
+			//DRAW TRIANGLE
 			glUseProgram(tri_shader.program);
 			glUniformMatrix4fv(glGetUniformLocation(tri_shader.program, "model_tri"), 1, GL_FALSE, glm::value_ptr(model_tri));
 			glUniformMatrix4fv(glGetUniformLocation(tri_shader.program, "view_tri"), 1, GL_FALSE, glm::value_ptr(view_tri));
@@ -587,7 +643,7 @@ int main(int argc, char** argv)
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, faceTexture);
 
-			glBindVertexArray(VAO_tri);	
+			glBindVertexArray(VAO_tri);
 
 			glPointSize(5.0f);
 			glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_Pos);
@@ -599,12 +655,11 @@ int main(int argc, char** argv)
 			glDrawElements(GL_TRIANGLES, 285, GL_UNSIGNED_INT, 0);
 			//glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
-		
+		}
+
 		glUseProgram(0); 
-
-		//glPolygonMode(GL_FRONT, GL_FILL);
-
 		glfwSwapBuffers(window);
+
 	}
 
 	glDeleteVertexArrays(1, &VAO_bg);
