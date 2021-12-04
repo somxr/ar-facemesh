@@ -24,6 +24,7 @@
 //MINE
 #include "Shader.h"
 #include "Object.h"
+#include "Facemesh.h"
 //#include "Texture.h"
 
 //DLIB
@@ -82,10 +83,8 @@ GLFWwindow* initializeOpenglWindow(int width_window, int height_window)
 }
 
 
-
 int main(int argc, char** argv)
 {
-	
 	GLFWwindow* window = initializeOpenglWindow(width_window, height_window);
 
 	if (window == NULL)
@@ -104,210 +103,213 @@ int main(int argc, char** argv)
 
 	GLfloat vertices_tri[68*3];
 	
+	Facemesh facemesh(vertices_tri);
 
-	GLfloat texture_coord[] =
-	{
-		0.102f, 0.232f, //0
-		0.104f, 0.338f,
-		0.117f, 0.443f,
-		0.141f, 0.551f,
-		0.180f, 0.646f,
-		0.246f, 0.732f, //5
-		0.322f, 0.809f,
-		0.410f, 0.865f,
-		0.519f, 0.881f,
-		0.609f, 0.864f,
-		0.695f, 0.803f, //10
-		0.773f, 0.729f,
-		0.836f, 0.639f,
-		0.877f, 0.541f,
-		0.896f, 0.434f,
-		0.904f, 0.324f, //15
-		0.906f, 0.217f,
-		0.180f, 0.150f,
-		0.227f, 0.109f,
-		0.293f, 0.100f,
-		0.359f, 0.107f, //20
-		0.426f, 0.135f,
-		0.559f, 0.131f,
-		0.625f, 0.100f,
-		0.695f, 0.090f,
-		0.765f, 0.100f, //25
-		0.816f, 0.139f,
-		0.494f, 0.213f,
-		0.495f, 0.283f,
-		0.500f, 0.354f,
-		0.500f, 0.424f, //30 
-		0.421f, 0.471f,
-		0.459f, 0.484f,
-		0.500f, 0.500f,
-		0.540f, 0.484f,
-		0.578f, 0.469f, //35
-		0.258f, 0.223f,
-		0.297f, 0.199f,
-		0.350f, 0.199f,
-		0.391f, 0.230f,
-		0.348f, 0.242f, //40
-		0.297f, 0.240f,
-		0.600f, 0.227f,
-		0.643f, 0.193f,
-		0.693f, 0.193f,
-		0.734f, 0.216f, //45
-		0.687f, 0.234f,
-		0.648f, 0.234f,
-		0.348f, 0.600f,
-		0.404f, 0.576f,
-		0.461f, 0.5625f, //50
-		0.502f, 0.574f,
-		0.543f, 0.561f,
-		0.602f, 0.570f,
-		0.660f, 0.592f,
-		0.646f, 0.652f, //55
-		0.551f, 0.678f,
-		0.504f, 0.686f,
-		0.461f, 0.682f,
-		0.404f, 0.656f,
-		0.373f, 0.604f, //60
-		0.461f, 0.598f,
-		0.500f, 0.602f,
-		0.543f, 0.596f,
-		0.635f, 0.598f,
-		0.547f, 0.627f, //65
-		0.502f, 0.631f,
-		0.461f, 0.627f
-	};
+	//GLfloat texture_coord[] =
+	//{
+	//	0.102f, 0.232f, //0
+	//	0.104f, 0.338f,
+	//	0.117f, 0.443f,
+	//	0.141f, 0.551f,
+	//	0.180f, 0.646f,
+	//	0.246f, 0.732f, //5
+	//	0.322f, 0.809f,
+	//	0.410f, 0.865f,
+	//	0.519f, 0.881f,
+	//	0.609f, 0.864f,
+	//	0.695f, 0.803f, //10
+	//	0.773f, 0.729f,
+	//	0.836f, 0.639f,
+	//	0.877f, 0.541f,
+	//	0.896f, 0.434f,
+	//	0.904f, 0.324f, //15
+	//	0.906f, 0.217f,
+	//	0.180f, 0.150f,
+	//	0.227f, 0.109f,
+	//	0.293f, 0.100f,
+	//	0.359f, 0.107f, //20
+	//	0.426f, 0.135f,
+	//	0.559f, 0.131f,
+	//	0.625f, 0.100f,
+	//	0.695f, 0.090f,
+	//	0.765f, 0.100f, //25
+	//	0.816f, 0.139f,
+	//	0.494f, 0.213f,
+	//	0.495f, 0.283f,
+	//	0.500f, 0.354f,
+	//	0.500f, 0.424f, //30 
+	//	0.421f, 0.471f,
+	//	0.459f, 0.484f,
+	//	0.500f, 0.500f,
+	//	0.540f, 0.484f,
+	//	0.578f, 0.469f, //35
+	//	0.258f, 0.223f,
+	//	0.297f, 0.199f,
+	//	0.350f, 0.199f,
+	//	0.391f, 0.230f,
+	//	0.348f, 0.242f, //40
+	//	0.297f, 0.240f,
+	//	0.600f, 0.227f,
+	//	0.643f, 0.193f,
+	//	0.693f, 0.193f,
+	//	0.734f, 0.216f, //45
+	//	0.687f, 0.234f,
+	//	0.648f, 0.234f,
+	//	0.348f, 0.600f,
+	//	0.404f, 0.576f,
+	//	0.461f, 0.5625f, //50
+	//	0.502f, 0.574f,
+	//	0.543f, 0.561f,
+	//	0.602f, 0.570f,
+	//	0.660f, 0.592f,
+	//	0.646f, 0.652f, //55
+	//	0.551f, 0.678f,
+	//	0.504f, 0.686f,
+	//	0.461f, 0.682f,
+	//	0.404f, 0.656f,
+	//	0.373f, 0.604f, //60
+	//	0.461f, 0.598f,
+	//	0.500f, 0.602f,
+	//	0.543f, 0.596f,
+	//	0.635f, 0.598f,
+	//	0.547f, 0.627f, //65
+	//	0.502f, 0.631f,
+	//	0.461f, 0.627f
+	//};
 
 
-	unsigned int indices[] =
-	{
-		20, 21, 23,
-		21, 22, 23,
-		0, 1, 36,
-		15, 16, 45,
-		0, 36, 17,
-		16, 26, 45,
-		17, 18, 37, //cw
-		25, 26, 44, //cw
-		17, 36, 37,
-		26, 44, 45,
-		18, 19, 38, //cw
-		24, 25, 43, //cw
-		18, 37, 38,
-		25, 43, 44,
-		19, 20, 38, //cw
-		23, 24, 43, //cw
-		20, 21, 39, //cw
-		22, 23, 42, //cw
-		20, 38, 39,
-		23, 42, 43,
-		21, 22, 27, //cw
-		21, 27, 39, //cw
-		22, 27, 42,
-		27, 28, 42,
-		27, 28, 39, //cw
-		28, 42, 47, //cw
-		28, 39, 40,
-		1,  36, 41, // cw
-		15, 45, 46,
-		1,  2, 41, 
-		14, 15, 46,
-		28, 29, 40, //cw
-		28, 29, 47,
-		2,  40, 41,
-		14, 46, 47,
-		2,  29, 40,
-		14, 29, 47, //cw
-		2,  3, 29, 
-		13, 14, 29,
-		29, 30, 31, //cw
-		29, 30, 35,
-		3,  29, 31, //cw
-		13, 29, 35,
-		30, 32, 33,
-		30, 33, 34,
-		30, 31, 32,
-		30, 34, 35,
-		3,  4, 31, 
-		12, 13, 35,
-		4,  5, 48, 
-		11, 12, 54,
-		5, 6, 48, 
-		10, 11, 54,
-		6, 48, 59, //cw
-		10, 54, 55,
-		6, 7, 59, 
-		9, 10, 55,
-		7, 58, 59,
-		9, 55, 56,
-		8, 57, 58,
-		8, 56, 57,
-		7, 8, 58, 
-		8, 9, 56, 
-		4, 31, 48, //cw
-		12, 35, 54,
-		31, 48, 49,
-		35, 53, 54,
-		31, 49, 50,
-		35, 52, 53,
-		31, 32, 50, //cw
-		34, 35, 52, //cw
-		32, 33, 50, //cw
-		33, 34, 52, //cw
-		33, 50, 51, 
-		33, 51, 52, 
-		49, 48, 60, 
-		64, 54, 53, 
-		55, 54, 64,
-		56, 55, 65,
-		53, 63, 64,
-		63, 53, 52,
-		55, 64, 65,
-		58, 57, 66,
-		59, 58, 67,
-		48, 59, 60,
-		60, 59, 67,
-		67, 58, 66,
-		57, 56, 66,
-		56, 65, 66,
-		60, 61, 49, //
-		49, 61, 50, //
-		50, 61, 51, //
-		51, 61, 62, //
-		62, 63, 51,
-		51, 63, 52,
-	};
+	//unsigned int indices[] =
+	//{
+	//	20, 21, 23,
+	//	21, 22, 23,
+	//	0, 1, 36,
+	//	15, 16, 45,
+	//	0, 36, 17,
+	//	16, 26, 45,
+	//	17, 18, 37, //cw
+	//	25, 26, 44, //cw
+	//	17, 36, 37,
+	//	26, 44, 45,
+	//	18, 19, 38, //cw
+	//	24, 25, 43, //cw
+	//	18, 37, 38,
+	//	25, 43, 44,
+	//	19, 20, 38, //cw
+	//	23, 24, 43, //cw
+	//	20, 21, 39, //cw
+	//	22, 23, 42, //cw
+	//	20, 38, 39,
+	//	23, 42, 43,
+	//	21, 22, 27, //cw
+	//	21, 27, 39, //cw
+	//	22, 27, 42,
+	//	27, 28, 42,
+	//	27, 28, 39, //cw
+	//	28, 42, 47, //cw
+	//	28, 39, 40,
+	//	1,  36, 41, // cw
+	//	15, 45, 46,
+	//	1,  2, 41, 
+	//	14, 15, 46,
+	//	28, 29, 40, //cw
+	//	28, 29, 47,
+	//	2,  40, 41,
+	//	14, 46, 47,
+	//	2,  29, 40,
+	//	14, 29, 47, //cw
+	//	2,  3, 29, 
+	//	13, 14, 29,
+	//	29, 30, 31, //cw
+	//	29, 30, 35,
+	//	3,  29, 31, //cw
+	//	13, 29, 35,
+	//	30, 32, 33,
+	//	30, 33, 34,
+	//	30, 31, 32,
+	//	30, 34, 35,
+	//	3,  4, 31, 
+	//	12, 13, 35,
+	//	4,  5, 48, 
+	//	11, 12, 54,
+	//	5, 6, 48, 
+	//	10, 11, 54,
+	//	6, 48, 59, //cw
+	//	10, 54, 55,
+	//	6, 7, 59, 
+	//	9, 10, 55,
+	//	7, 58, 59,
+	//	9, 55, 56,
+	//	8, 57, 58,
+	//	8, 56, 57,
+	//	7, 8, 58, 
+	//	8, 9, 56, 
+	//	4, 31, 48, //cw
+	//	12, 35, 54,
+	//	31, 48, 49,
+	//	35, 53, 54,
+	//	31, 49, 50,
+	//	35, 52, 53,
+	//	31, 32, 50, //cw
+	//	34, 35, 52, //cw
+	//	32, 33, 50, //cw
+	//	33, 34, 52, //cw
+	//	33, 50, 51, 
+	//	33, 51, 52, 
+	//	49, 48, 60, 
+	//	64, 54, 53, 
+	//	55, 54, 64,
+	//	56, 55, 65,
+	//	53, 63, 64,
+	//	63, 53, 52,
+	//	55, 64, 65,
+	//	58, 57, 66,
+	//	59, 58, 67,
+	//	48, 59, 60,
+	//	60, 59, 67,
+	//	67, 58, 66,
+	//	57, 56, 66,
+	//	56, 65, 66,
+	//	60, 61, 49, //
+	//	49, 61, 50, //
+	//	50, 61, 51, //
+	//	51, 61, 62, //
+	//	62, 63, 51,
+	//	51, 63, 52,
+	//};
 
-	GLuint EBO;
+	////GLuint EBO;
 
-	GLuint VBO_tri_Pos, VBO_tri_texcoord, VAO_tri;
-	glGenVertexArrays(1, &VAO_tri);
-	glGenBuffers(1, &VBO_tri_Pos);
+	////GLuint VBO_tri_Pos, VBO_tri_texcoord, VAO_tri;
+	////glGenVertexArrays(1, &VAO_tri);
+	////glGenBuffers(1, &VBO_tri_Pos);
 
-	glBindVertexArray(VAO_tri);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_Pos);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(68*3*(sizeof(GLfloat))), NULL, GL_DYNAMIC_DRAW);
-	
-	// Postion Attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind vbo
+	////glBindVertexArray(VAO_tri);
+	////
+	////glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_Pos);
+	////glBufferData(GL_ARRAY_BUFFER, sizeof(68*3*(sizeof(GLfloat))), NULL, GL_DYNAMIC_DRAW);
+	////
+	////// Postion Attribute
+	////glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	////glEnableVertexAttribArray(0);
+	////glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind vbo
 
-	// Texture Attribute
-	glGenBuffers(1, &VBO_tri_texcoord);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_texcoord);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(texture_coord), texture_coord, GL_STATIC_DRAW);
-	
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL); 
-	glEnableVertexAttribArray(1);
-	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind vbo
+	////// Texture Attribute
+	////glGenBuffers(1, &VBO_tri_texcoord);
+	////glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_texcoord);
+	////glBufferData(GL_ARRAY_BUFFER, sizeof(texture_coord), texture_coord, GL_STATIC_DRAW);
+	////
+	////glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL); 
+	////glEnableVertexAttribArray(1);
+	////glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind vbo
 
-	//Index buffer
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	//////Index buffer
+	////glGenBuffers(1, &EBO);
+	////glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	////glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	glBindVertexArray(0); // Unbind VAO
+	////glBindVertexArray(0); // Unbind VAO
+
+	facemesh.CreateMesh();
 
 	faceTexture = loadTexture("Textures/UVTEST.png");
 
@@ -446,7 +448,6 @@ int main(int argc, char** argv)
 	 
 	while (!glfwWindowShouldClose(window))
 	{
-		
 		glfwPollEvents();
 		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -528,9 +529,15 @@ int main(int argc, char** argv)
 					cv::Point point = cv::Point(smoothX, smoothY);
 					cv::circle(frame, point, 3, cv::Scalar(0, 0, 255));
 
-					vertices_tri[index] = smoothX * (width_window / float(width));
+					/*vertices_tri[index] = smoothX * (width_window / float(width));
 					vertices_tri[index + 1] = (height - smoothY) * (height_window / float(height));
-					vertices_tri[index + 2] = 1.0f;
+					vertices_tri[index + 2] = 1.0f;*/
+					GLfloat x = smoothX * (width_window / float(width));
+					GLfloat y = (height - smoothY) * (height_window / float(height));
+					GLfloat z = 1.0f;
+
+					facemesh.updateVertices(index, x, y, z);
+
 					index += 3;
 				}
 
@@ -577,9 +584,9 @@ int main(int argc, char** argv)
 			view_tri = glm::mat4(1.0f);
 
 			model_tri = glm::translate(model_tri, glm::vec3(0, 0, -100.0f));
-			//model_tri = glm::scale(model_tri, glm::vec3(3.0f, 3.0f, 3.0f));
-			// 
-			//DRAW TRIANGLE
+			
+
+			//DRAW Facemesh
 			glUseProgram(tri_shader.program);
 			glUniformMatrix4fv(glGetUniformLocation(tri_shader.program, "model_tri"), 1, GL_FALSE, glm::value_ptr(model_tri));
 			glUniformMatrix4fv(glGetUniformLocation(tri_shader.program, "view_tri"), 1, GL_FALSE, glm::value_ptr(view_tri));
@@ -588,20 +595,23 @@ int main(int argc, char** argv)
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, faceTexture);
 
-			glBindVertexArray(VAO_tri);
+			//glBindVertexArray(VAO_tri);
 
-			glPointSize(5.0f);
-			glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_Pos);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_tri), vertices_tri, GL_DYNAMIC_DRAW);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			//glPointSize(5.0f);
+			//glBindBuffer(GL_ARRAY_BUFFER, VBO_tri_Pos);
+			//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_tri), vertices_tri, GL_DYNAMIC_DRAW);
+			//glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			//glDrawArrays(GL_TRIANGLE_STRIP, 0, 68);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-			glDrawElements(GL_TRIANGLES, 285, GL_UNSIGNED_INT, 0);
+			////glDrawArrays(GL_TRIANGLE_STRIP, 0, 68);
+			//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+			//glDrawElements(GL_TRIANGLES, 285, GL_UNSIGNED_INT, 0);
 
-			//glDrawArrays(GL_POINTS, 0, 68);
+			////glDrawArrays(GL_POINTS, 0, 68);
 
-			glBindVertexArray(0);
+			//glBindVertexArray(0);
+
+			facemesh.Render();
+
 		}
 
 		glUseProgram(0); 
@@ -656,3 +666,4 @@ GLuint loadTexture(const char* filename)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	return textureId;
 }
+

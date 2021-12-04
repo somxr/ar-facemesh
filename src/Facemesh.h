@@ -13,11 +13,12 @@ public:
 	void CreateMesh();
 	void Render();
 	void ClearMesh();
+	void updateVertices(int index, GLfloat x, GLfloat y, GLfloat z);
 
 private:
 	GLuint VAO, VBO_position, VBO_TexCoord, EBO;
 
-	GLfloat* vertices;
+	GLfloat vertices[68 * 3];
 
 	const unsigned int indices[285] = {
 	20, 21, 23,
@@ -116,6 +117,7 @@ private:
 	62, 63, 51,
 	51, 63, 52,
 	};
+
 	const GLfloat texture_coord[136] = {
 		0.102f, 0.232f, //0
 		0.104f, 0.338f,
@@ -186,5 +188,6 @@ private:
 		0.502f, 0.631f,
 		0.461f, 0.627f
 	};
+
 
 };

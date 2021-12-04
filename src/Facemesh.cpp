@@ -2,9 +2,7 @@
 
 
 Facemesh::Facemesh() {
-	
-	vertices = NULL;
-	
+		
 	VAO = 0;
 	VBO_position = 0;
 	VBO_TexCoord = 0;
@@ -13,12 +11,17 @@ Facemesh::Facemesh() {
 
 Facemesh::Facemesh(GLfloat *verticesArray) {
 	
-	vertices = verticesArray;
-
 	VAO = 0;
 	VBO_position = 0;
 	VBO_TexCoord = 0;
 	EBO = 0;
+}
+
+void Facemesh::updateVertices(int index, GLfloat x, GLfloat y, GLfloat z)
+{
+	vertices[index] = x;
+	vertices[index + 1] = y;
+	vertices[index + 2] = 1.0f;
 }
 
 void Facemesh::CreateMesh() {
