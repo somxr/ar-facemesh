@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #define STB_IMAGE_IMPLEMENTATION
 //#include <GL/glew.h>
 
@@ -37,6 +37,7 @@
 
 int width_window = 640, height_window = 480;
 GLuint faceTexture;
+
 GLuint loadTexture(const char* filename);
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -45,7 +46,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 }
-
 
 
 GLFWwindow* initializeOpenglWindow(int width_window, int height_window)
@@ -103,57 +103,7 @@ int main(int argc, char** argv)
 	//TRIANGLE//--------------------//
 
 	GLfloat vertices_tri[68*3];
-	//GLfloat vertices_tri_prev[68 * 3];
-
-	std::vector<cv::Point2f> pointsPrev;
-
-	//GLfloat texture_coord[] = 
-	//{
-	//	0.102f, 0.768f, //0
-	//	0.104f, 0.662f,
-	//	0.117f, 0.557f,
-	//	0.141f, 0.449f,
-	//	0.180f, 0.354f,
-	//	0.246f, 0.268f, //5
-	//	0.322f, 0.191f,
-	//	0.410f, 0.135f,
-	//	0.519f, 0.119,
-	//	0.609f, 0.136f,
-	//	0.695f, 0.197f, //10
-	//	0.773f, 0.271f,
-	//	0.836f, 0.361f,
-	//	0.877f, 0.459f,
-	//	0.896f, 0.566f,
-	//	0.904f, 0.676f, //15
-	//	0.906f, 0.783f,
-	//	0.180f, 0.850f,
-	//	0.227f, 0.891f,
-	//	0.293f, 0.900f,
-	//	0.359f, 0.893f, //20
-	//	0.426f, 0.865f,
-	//	0.559f, 0.869f,
-	//	0.625f, 0.900f,
-	//	0.695f, 0.910f,
-	//	0.765f, 0.900f, //25
-	//	0.816f, 0.861f,
-	//	0.494f, 0.787f,
-	//	0.495f, 0.717f,
-	//	0.500f, 0.646f,
-	//	0.500f, 0.576f, //30 
-	//	0.421f, 0.529f,
-	//	0.459f, 0.516f,
-	//	0.500f, 0.500f,
-	//	0.540f, 0.516f,
-	//	0.578f, 0.531f, //35
-	//	0.258f, 0.777f,
-	//	0.297f, 0.801f,
-	//	0.350f, 0.801f,
-	//	0.391f, 0.770f,
-	//	0.348f, 0.758f, //40
-	//	0.297f, 0.760f,
-
-
-	//}; 
+	
 
 	GLfloat texture_coord[] =
 	{
@@ -401,15 +351,6 @@ int main(int argc, char** argv)
 		0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
 	};
 
-	//Object sphere = Object("Models/sphere.obj");
-
-	//unsigned int indices_pyramid[] = {
-	//	0, 3, 1,
-	//	1, 3, 2,
-	//	2, 3, 0,
-	//	0, 1, 2
-	//};
-	
 
 	GLuint VBO_bg, VAO_bg;
 	glGenVertexArrays(1, &VAO_bg);
@@ -497,8 +438,12 @@ int main(int argc, char** argv)
 	//define to hold detected faces
 	std::vector<dlib::rectangle> faces;
 	int frameCounter = 0;
-	int skipFrames = 1;
+	int skipFrames = 2;
 
+
+	std::vector<cv::Point2f> pointsPredicted;
+	std::vector<cv::Point2f> pointsPrev;
+	 
 	while (!glfwWindowShouldClose(window))
 	{
 		
@@ -569,7 +514,6 @@ int main(int argc, char** argv)
 					firstFrame = false;
 				}
 
-				std::vector<cv::Point2f> pointsPredicted;
 				cv::TermCriteria criteria = cv::TermCriteria((cv::TermCriteria::COUNT)+(cv::TermCriteria::EPS), 20, 0.001);
 				std::vector<uchar> status;
 				std::vector<float> err;
@@ -578,8 +522,8 @@ int main(int argc, char** argv)
 
 				for (int j = 0; j < 68; j++)
 				{
-					float smoothX = 0.0f * points[j].x + 1.0f * pointsPredicted[j].x;
-					float smoothY = 0.0f * points[j].y + 1.0f * pointsPredicted[j].y;
+					float smoothX = 1.0f * pointsPrev[j].x + 0.0f * pointsPredicted[j].x;
+					float smoothY = 1.0f * pointsPrev[j].y + 0.0f * pointsPredicted[j].y;
 
 					cv::Point point = cv::Point(smoothX, smoothY);
 					cv::circle(frame, point, 3, cv::Scalar(0, 0, 255));
@@ -590,8 +534,9 @@ int main(int argc, char** argv)
 					index += 3;
 				}
 
-				frameGrayPrev = frameGray.clone();
-				pointsPrev = points;
+				std::swap(frameGrayPrev, frameGray);
+				std::swap(pointsPrev, points);
+				
 			}
 		
 		}
@@ -653,7 +598,9 @@ int main(int argc, char** argv)
 			//glDrawArrays(GL_TRIANGLE_STRIP, 0, 68);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 			glDrawElements(GL_TRIANGLES, 285, GL_UNSIGNED_INT, 0);
-			//glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+
+			//glDrawArrays(GL_POINTS, 0, 68);
+
 			glBindVertexArray(0);
 		}
 
@@ -668,6 +615,7 @@ int main(int argc, char** argv)
 	glfwTerminate();
 	return EXIT_SUCCESS;
 }
+
 
 //Texture 
 GLuint loadTexture(const char* filename)
