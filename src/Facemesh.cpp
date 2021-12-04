@@ -2,15 +2,12 @@
 
 
 Facemesh::Facemesh() {
-		
-	VAO = 0;
-	VBO_position = 0;
-	VBO_TexCoord = 0;
-	EBO = 0;
-}
 
-Facemesh::Facemesh(GLfloat *verticesArray) {
-	
+	for (int i = 0; i < (68 * 3); i++)
+	{
+		vertices[i] = 0;
+	}
+
 	VAO = 0;
 	VBO_position = 0;
 	VBO_TexCoord = 0;

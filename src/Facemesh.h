@@ -8,8 +8,6 @@ public:
 	Facemesh();
 	~Facemesh();
 
-	Facemesh(GLfloat* verticesArray);
-
 	void CreateMesh();
 	void Render();
 	void ClearMesh();
