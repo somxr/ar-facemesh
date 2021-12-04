@@ -134,7 +134,6 @@ int main(int argc, char** argv)
 	//Facemesh//--------------------//
 	
 	Facemesh facemesh;
-
 	facemesh.CreateMesh();
 
 	faceTexture = loadTexture("Textures/UVTEST.png");

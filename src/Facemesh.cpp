@@ -1,6 +1,5 @@
 #include "Facemesh.h"
 
-
 Facemesh::Facemesh() {
 
 	for (int i = 0; i < (68 * 3); i++)
