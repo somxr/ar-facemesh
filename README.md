@@ -21,6 +21,11 @@ Point OpenCV_DIR to the build folder of where you extracted opencv (e.g.: C:/dev
 Click Configure then Generate.
 Click on Open Project.
 
-You should have all three libs
+You should have a project sln file with all three libraries included 
 
-Copy 
+Copy the following files from src to the root of your 'build' folder:
+- Textures 
+- Shaders
+- shape_predictor_68_face_landmarks.dat 
+
+Open the project and run it in Release mode, since Debug mode is too slow

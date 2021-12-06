@@ -132,7 +132,7 @@ int main(int argc, char** argv)
 	Facemesh facemesh;
 	facemesh.CreateMesh();
 
-	faceTexture = loadTexture("Textures/murakami.png");
+	faceTexture = loadTexture("Textures/blush.png");
 
 	glm::mat4 model_face;
 	glm::mat4 view_face = glm::mat4(1.0f);
