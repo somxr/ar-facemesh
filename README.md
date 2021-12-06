@@ -1,12 +1,16 @@
+This is an AR face mask application. It is inspired by popular social media AR "filters" that augment things like makeup, tattoos, and face masks on the user's face. It uses OpenGL for graphics, OpenCV for computer vision tools, and DLib for machine learning and face detection algorithms.  
+
+To build the project:
+
 Download opencv from this link:
 https://github.com/opencv/opencv/releases/download/4.5.4/opencv-4.5.4-vc14_vc15.exe
 This is a self-extracting executable, so run it and extract it anywhere.
 
 Open CMakeLists.txt.
-Rename "Test" to the project name of your choice on these line:
+Rename "Test" to the project name of your choice on these lines:
 - project(Test)
 - set(EXEC Test)
-Save.
+Save
 
 Open CMake-GUI.
 Point the source code folder to this folder.
@@ -17,4 +21,6 @@ Point OpenCV_DIR to the build folder of where you extracted opencv (e.g.: C:/dev
 Click Configure then Generate.
 Click on Open Project.
 
-You should have all three libs op
+You should have all three libs
+
+Copy 

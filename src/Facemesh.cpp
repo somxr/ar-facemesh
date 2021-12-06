@@ -13,7 +13,7 @@ Facemesh::Facemesh() {
 	EBO = 0;
 }
 
-void Facemesh::updateVertices(int index, GLfloat x, GLfloat y, GLfloat z)
+void Facemesh::updateVertex(int index, GLfloat x, GLfloat y, GLfloat z)
 {
 	vertices[index] = x;
 	vertices[index + 1] = y;
@@ -55,6 +55,8 @@ void Facemesh::CreateMesh() {
 
 void Facemesh::Render()
 {
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	glBindVertexArray(VAO);
 
 	glPointSize(5.0f);

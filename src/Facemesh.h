@@ -11,7 +11,7 @@ public:
 	void CreateMesh();
 	void Render();
 	void ClearMesh();
-	void updateVertices(int index, GLfloat x, GLfloat y, GLfloat z);
+	void updateVertex(int index, GLfloat x, GLfloat y, GLfloat z);
 
 private:
 	GLuint VAO, VBO_position, VBO_TexCoord, EBO;

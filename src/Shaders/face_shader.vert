@@ -11,4 +11,5 @@ uniform mat4 orthographic_projection_tri;
 void main()
 {
 	gl_Position = orthographic_projection_tri * view_tri * model_tri * vec4(position, 1.0);
+	texCoords = tex_coords;
 }

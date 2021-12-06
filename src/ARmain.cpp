@@ -14,7 +14,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-//#include "SOIL.h"
 
 // some extra required imports
 #include <string.h>
@@ -23,9 +22,7 @@
 
 //MINE
 #include "Shader.h"
-#include "Object.h"
 #include "Facemesh.h"
-//#include "Texture.h"
 
 //DLIB
 #include<dlib/image_processing/frontal_face_detector.h>
@@ -34,7 +31,7 @@
 
 #include "stb_image.h"
 
-//Global vairables
+//Global variables
 
 int width_window = 640, height_window = 480;
 GLuint faceTexture;
@@ -93,8 +90,7 @@ std::vector<cv::Point2f> getFaceLandmarks(std::vector<dlib::rectangle>& faces, f
 
 	cv::Point topLeft = cv::Point(faces[0].left(), faces[0].top());
 	cv::Point bottomRight = cv::Point(faces[0].right(), faces[0].bottom());
-
-	cv::rectangle(frame, topLeft, bottomRight, cv::Scalar(255, 0, 0));
+	//cv::rectangle(frame, topLeft, bottomRight, cv::Scalar(255, 0, 0));
 
 	//Face landmark detection
 	dlib::full_object_detection faceLandmark = landmarkDetector(dlibImage, rect);
@@ -129,14 +125,14 @@ int main(int argc, char** argv)
 	glViewport(0, 0, width_window, height_window);
 
 	Shader bg_shader("Shaders/bg_vertex_shader.vert", "Shaders/bg_fragment_shader.frag");
-	Shader face_shader("Shaders/triangle_shader.vert", "Shaders/triangle_shader.frag");
+	Shader face_shader("Shaders/face_shader.vert", "Shaders/face_shader.frag");
 
 	//Facemesh//--------------------//
 	
 	Facemesh facemesh;
 	facemesh.CreateMesh();
 
-	faceTexture = loadTexture("Textures/UVTEST.png");
+	faceTexture = loadTexture("Textures/murakami.png");
 
 	glm::mat4 model_face;
 	glm::mat4 view_face = glm::mat4(1.0f);
@@ -184,7 +180,7 @@ int main(int argc, char** argv)
 
 	float nearPlane_bg = 0.1f;
 
-	int width, height;
+	int width_frame, height_frame;
 	cv::VideoCapture cap(1);
 
 	if (!cap.isOpened()) {
@@ -194,10 +190,10 @@ int main(int argc, char** argv)
 
 	bool firstFrame = true;
 	cap >> frame;
-	width = frame.size().width;
-	height = frame.size().height;
+	width_frame = frame.size().width;
+	height_frame = frame.size().height;
 
-	std::cout << width << std::endl; //TESTING
+	//std::cout << width_frame << std::endl; //TESTING
 
 	GLuint texture_bg;
 	glGenTextures(1, &texture_bg);
@@ -209,7 +205,7 @@ int main(int argc, char** argv)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, frame.data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_frame, height_frame, 0, GL_RGB, GL_UNSIGNED_BYTE, frame.data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -247,7 +243,6 @@ int main(int argc, char** argv)
 	int frameCounter = 0;
 	int skipFrames = 2;
 
-
 	std::vector<cv::Point2f> pointsPredicted;
 	std::vector<cv::Point2f> pointsPrev;
 	 
@@ -279,6 +274,7 @@ int main(int argc, char** argv)
 
 				cv::cvtColor(frame, frameGray, cv::COLOR_BGR2GRAY);
 
+				//initialize in case of first frame, there is no prev frame yet
 				if (firstFrame)
 				{
 					frameGrayPrev = frameGray.clone();
@@ -286,28 +282,36 @@ int main(int argc, char** argv)
 					firstFrame = false;
 				}
 
+				//Optical flow algorithm for stabilizing points. Takes greyscale frame and the previous frame with the previous frame
+				//returns a prediction of the new position of the pixels based on their motion
 				cv::TermCriteria criteria = cv::TermCriteria((cv::TermCriteria::COUNT)+(cv::TermCriteria::EPS), 20, 0.001);
 				std::vector<uchar> status;
 				std::vector<float> err;
 				cv::calcOpticalFlowPyrLK(frameGrayPrev, frameGray, pointsPrev, pointsPredicted, status, err, cv::Size(101, 101), 5, criteria);
 
+				//index for filling the vertex array, for each vertex we need to fill 3 values 
 				int index = 0;
 
 				for (int j = 0; j < 68; j++)
 				{
+					//new smoother coordinates are weighted between the current Dlib prediction and the optical flow prediction 
 					float smoothX = 0.3f * pointsPrev[j].x + 0.7f * pointsPredicted[j].x;
 					float smoothY = 0.3f * pointsPrev[j].y + 0.7f * pointsPredicted[j].y;
 
-					GLfloat x = smoothX * (width_window / float(width));
-					GLfloat y = (height - smoothY) * (height_window / float(height));
+					//convert the coordinates to work in the OpenGL window's resolution from OpenCV's webcam feed resolution
+					GLfloat x = smoothX * (width_window / float(width_frame));
+					GLfloat y = (height_frame - smoothY) * (height_window / float(height_frame));
 					GLfloat z = 1.0f;
 
-					facemesh.updateVertices(index, x, y, z);
+					facemesh.updateVertex(index, x, y, z);
 
 					index += 3;
 				}
 
+				//previous frame = current frame
 				std::swap(frameGrayPrev, frameGray);
+
+				//previous points = current points
 				std::swap(pointsPrev, points);
 			
 			}
@@ -337,18 +341,20 @@ int main(int argc, char** argv)
 		glBindVertexArray(0);
 
 		glUseProgram(0);
-		// -----------------------------------------------------------------------------------------------------
+		// ---------------------------------------------------------------------------------
 
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-		//if a face is detected, render the face mesh using the VAO
+		//only if a face is detected, render the face mesh using the VAO
 		if (faces.size() > 0) {
-			//Matrix should be here
-			model_face = glm::mat4(1.0f);
-			view_face = glm::mat4(1.0f);
-
-			model_face = glm::translate(model_face, glm::vec3(0, 0, -100.0f));
 			
+			//model-view matrices 
+			model_face = glm::mat4(1.0f);
+			model_face = glm::translate(model_face, glm::vec3(0, 0, -100.0f));
+
+			view_face = glm::mat4(1.0f);
+			
+			//this is in order to have transparency on the face mask so it looks like augmented face paint instead of a full face mask
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			//DRAW Facemesh
 			glUseProgram(face_shader.program);
@@ -364,16 +370,16 @@ int main(int argc, char** argv)
 
 		glUseProgram(0); 
 		glfwSwapBuffers(window);
-
 	}
 
 	glDeleteVertexArrays(1, &VAO_bg);
 	glDeleteBuffers(1, &VBO_bg);
 
+	facemesh.ClearMesh();
+
 	glfwTerminate();
 	return EXIT_SUCCESS;
 }
-
 
 //Texture 
 GLuint loadTexture(const char* filename)
@@ -414,4 +420,3 @@ GLuint loadTexture(const char* filename)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	return textureId;
 }
-
