@@ -1,6 +1,10 @@
+#Summary
 This is an AR face mask application. It is inspired by popular social media AR "filters" that augment things like makeup, tattoos, and face masks on the user's face. It uses OpenGL for graphics, OpenCV for computer vision tools, and DLib for machine learning and face detection algorithms.  
 
-To build the project:
+![image004](https://user-images.githubusercontent.com/60410055/146120831-c5ba9557-24de-4863-a457-86552c4d3e3a.gif)
+
+
+#To build project:
 
 Download opencv from this link:
 https://github.com/opencv/opencv/releases/download/4.5.4/opencv-4.5.4-vc14_vc15.exe
