@@ -380,19 +380,19 @@ int main(int argc, char** argv)
 			glUniformMatrix4fv(glGetUniformLocation(face_shader.program, "orthographic_projection_tri"), 1, GL_FALSE, glm::value_ptr(orthographic_projection_bg));
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, UVtex);
+			glBindTexture(GL_TEXTURE_2D, blushTex);
 
 			facemesh1.Render();
 
-			/*glActiveTexture(GL_TEXTURE0);
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, kawaiiTexture);
 
 			facemesh2.Render();
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, lipstickTex);
+			/*glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, lipstickTex);*/
 
-			lipstick.Render();*/
+			/*lipstick.Render();*/
 
 		}
 
