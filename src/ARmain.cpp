@@ -34,7 +34,7 @@
 //Global variables
 
 int width_window = 640, height_window = 480;
-GLuint faceTexture;
+GLuint blushTex;
 
 GLuint loadTexture(const char* filename);
 
@@ -129,10 +129,22 @@ int main(int argc, char** argv)
 
 	//Facemesh//--------------------//
 	
-	Facemesh facemesh;
-	facemesh.CreateMesh();
+	Facemesh facemesh1;
+	facemesh1.CreateMesh();
 
-	faceTexture = loadTexture("Textures/blush.png");
+	Facemesh facemesh2;
+	facemesh2.CreateMesh();
+
+	Facemesh lipstick;
+	lipstick.CreateMesh();
+
+	blushTex = loadTexture("Textures/blush.png");
+	
+	GLuint UVtex = loadTexture("Textures/UVTEST.png");
+	GLuint flowerTexture = loadTexture("Textures/murakami.png");
+	GLuint kawaiiTexture = loadTexture("Textures/kawaii.png");
+	GLuint lipstickTex = loadTexture("Textures/lipstick.png");
+	GLuint strandingTex = loadTexture("Textures/stranding.png");
 
 	glm::mat4 model_face;
 	glm::mat4 view_face = glm::mat4(1.0f);
@@ -295,15 +307,20 @@ int main(int argc, char** argv)
 				for (int j = 0; j < 68; j++)
 				{
 					//new smoother coordinates are weighted between the current Dlib prediction and the optical flow prediction 
-					float smoothX = 0.3f * pointsPrev[j].x + 0.7f * pointsPredicted[j].x;
-					float smoothY = 0.3f * pointsPrev[j].y + 0.7f * pointsPredicted[j].y;
+					float smoothX = 0.6f * points[j].x + 0.4f * pointsPredicted[j].x;
+					float smoothY = 0.6f * points[j].y + 0.4f * pointsPredicted[j].y;
 
 					//convert the coordinates to work in the OpenGL window's resolution from OpenCV's webcam feed resolution
 					GLfloat x = smoothX * (width_window / float(width_frame));
 					GLfloat y = (height_frame - smoothY) * (height_window / float(height_frame));
 					GLfloat z = 1.0f;
 
-					facemesh.updateVertex(index, x, y, z);
+					facemesh1.updateVertex(index, x, y, z);
+					facemesh2.updateVertex(index, x, y, z + 1.0);
+					lipstick.updateVertex(index, x, y, z + 2.0);
+
+					points[j].x = smoothX;
+					points[j].y = smoothY;
 
 					index += 3;
 				}
@@ -312,7 +329,7 @@ int main(int argc, char** argv)
 				std::swap(frameGrayPrev, frameGray);
 
 				//previous points = current points
-				std::swap(pointsPrev, points);
+				std::swap(pointsPrev, points); //THE PROBLEM IS HEREEEEEEEEEEEEEE FIX IT
 			
 			}
 		}
@@ -363,9 +380,20 @@ int main(int argc, char** argv)
 			glUniformMatrix4fv(glGetUniformLocation(face_shader.program, "orthographic_projection_tri"), 1, GL_FALSE, glm::value_ptr(orthographic_projection_bg));
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, faceTexture);
+			glBindTexture(GL_TEXTURE_2D, UVtex);
 
-			facemesh.Render();
+			facemesh1.Render();
+
+			/*glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, kawaiiTexture);
+
+			facemesh2.Render();
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, lipstickTex);
+
+			lipstick.Render();*/
+
 		}
 
 		glUseProgram(0); 
@@ -375,7 +403,7 @@ int main(int argc, char** argv)
 	glDeleteVertexArrays(1, &VAO_bg);
 	glDeleteBuffers(1, &VBO_bg);
 
-	facemesh.ClearMesh();
+	facemesh1.ClearMesh();
 
 	glfwTerminate();
 	return EXIT_SUCCESS;

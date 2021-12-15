@@ -17,7 +17,7 @@ void Facemesh::updateVertex(int index, GLfloat x, GLfloat y, GLfloat z)
 {
 	vertices[index] = x;
 	vertices[index + 1] = y;
-	vertices[index + 2] = 1.0f;
+	vertices[index + 2] = z;
 }
 
 void Facemesh::CreateMesh() {
